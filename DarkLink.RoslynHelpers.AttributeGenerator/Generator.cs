@@ -93,7 +93,7 @@ public class Generator : IIncrementalGenerator
     {
         writer.WriteLine("public static void AddTo(IncrementalGeneratorPostInitializationContext context)");
         writer.WriteLine("{");
-        writer.WriteLine($"const string hintName = \"{definition.Type.ToDisplayString()}.g.cs\";");
+        writer.WriteLine($"const string hintName = \"{definition.FullName}.g.cs\";");
         writer.WriteLine("const string code = @\"");
         writer.WriteLine("using System;");
 
