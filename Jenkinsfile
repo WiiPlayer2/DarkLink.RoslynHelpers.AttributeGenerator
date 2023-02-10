@@ -11,7 +11,7 @@ pipeline {
         stage('Cleanup') {
             steps {
                 sh 'rm -r ./packages || true'
-                sh 'dotnet clean'
+                sh 'dotnet clean || true'
             }
         }
 
