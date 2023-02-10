@@ -17,6 +17,7 @@ internal static class Extensions
 
         SyntaxToken Map() => value switch
         {
+            string stringValue => Literal(stringValue),
             int intValue => Literal(intValue),
             _ => throw new NotImplementedException(),
         };

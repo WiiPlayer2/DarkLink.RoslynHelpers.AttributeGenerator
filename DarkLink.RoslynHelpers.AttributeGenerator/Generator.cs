@@ -48,6 +48,7 @@ public class Generator : IIncrementalGenerator
 
             WriteSymbolStart(codeWriter, definition.Type);
 
+            WriteFullNameConstantCode(codeWriter, definition);
             WriteAttributeGenerationCode(codeWriter, definition);
             WriteAttributeParsingCode(codeWriter, definition);
 
@@ -71,6 +72,9 @@ public class Generator : IIncrementalGenerator
         }
     }
 
+    private void WriteFullNameConstantCode(TextWriter writer, AttributeDefinition definition)
+        => writer.WriteLine($"public const string ATTRIBUTE_NAME = {definition.FullName.ToLiteral()};");
+
     private void WriteAttributeGenerationCode(TextWriter writer, AttributeDefinition definition)
     {
         writer.WriteLine("public static void AddTo(IncrementalGeneratorPostInitializationContext context)");
@@ -86,9 +90,9 @@ public class Generator : IIncrementalGenerator
         }
 
         writer.WriteLine($"[AttributeUsage((AttributeTargets){(int) definition.Data.ValidOn}, AllowMultiple = {definition.Data.AllowMultiple}, Inherited = {definition.Data.Inherited})]");
-        writer.WriteLine($"public class {definition.Type.Name} : Attribute");
+        writer.WriteLine($"public class {definition.Name} : Attribute");
         writer.WriteLine("{");
-        writer.WriteLine($"public {definition.Type.Name}({string.Join(", ", GetConstructorParameters())}) {{ }}");
+        writer.WriteLine($"public {definition.Name}({string.Join(", ", GetConstructorParameters())}) {{ }}");
         foreach (var propertyParameter in GetPropertyParameters())
             writer.WriteLine(propertyParameter);
         writer.WriteLine("}");
@@ -204,12 +208,25 @@ using Microsoft.CodeAnalysis.Text;
     private record AttributeDefinition(GenerateAttributeData Data, INamedTypeSymbol Type, IReadOnlyList<IParameterSymbol> Parameters)
     {
         public string? Namespace
-            => Type.ContainingNamespace is {IsGlobalNamespace: false}
-                ? Type.ContainingNamespace.ToDisplayString()
-                : default;
+            => Data.Namespace
+                ?? (Type.ContainingNamespace is {IsGlobalNamespace: false}
+                    ? Type.ContainingNamespace.ToDisplayString()
+                    : default);
+
+        public string Name => Data.Name ?? Type.Name;
+
+        public string FullName
+            => Namespace is not null
+                ? $"{Namespace}.{Name}"
+                : Name;
     }
 
-    private record GenerateAttributeData(AttributeTargets ValidOn, bool AllowMultiple, bool Inherited)
+    private record GenerateAttributeData(
+        AttributeTargets ValidOn,
+        bool AllowMultiple,
+        bool Inherited,
+        string? Namespace,
+        string? Name)
     {
         public static GenerateAttributeData FromAttribute(AttributeData data)
         {
@@ -218,7 +235,9 @@ using Microsoft.CodeAnalysis.Text;
             var validOn = (AttributeTargets) data.ConstructorArguments[0].Value!;
             var allowMultiple = GetNamedValueOrDefault(nameof(AllowMultiple), false);
             var inherited = GetNamedValueOrDefault(nameof(Inherited), true);
-            return new GenerateAttributeData(validOn, allowMultiple, inherited);
+            var @namespace = GetNamedValueOrDefault(nameof(Namespace), default(string?));
+            var name = GetNamedValueOrDefault(nameof(Name), default(string?));
+            return new GenerateAttributeData(validOn, allowMultiple, inherited, @namespace, name);
 
             T GetNamedValueOrDefault<T>(string name, T defaultValue)
                 => namedArguments.TryGetValue(name, out var value)

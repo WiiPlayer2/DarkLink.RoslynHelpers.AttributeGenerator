@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 partial class TestAttribute
 {
+public const string ATTRIBUTE_NAME = "TestAttribute";
 public static void AddTo(IncrementalGeneratorPostInitializationContext context)
 {
 const string hintName = "TestAttribute.g.cs";
