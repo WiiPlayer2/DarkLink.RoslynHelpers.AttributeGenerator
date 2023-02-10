@@ -4,6 +4,23 @@ namespace DarkLink.RoslynHelpers.AttributeGenerator.Test;
 public class GeneratorTest : VerifySourceGenerator
 {
     [TestMethod]
+    public async Task AttributeWithConstructorAndOtherNameAndNamespace()
+    {
+        var source = @"
+using System;
+using DarkLink.RoslynHelpers;
+
+[GenerateAttribute(AttributeTargets.All, Name = ""OtherNameAttribute"", Namespace = ""OtherNamespace.Here"")]
+public partial class TestAttribute
+{
+    public TestAttribute(string requiredArgument, int optionalArgument = 42) { }
+}
+";
+
+        await Verify(source);
+    }
+
+    [TestMethod]
     public async Task ComplexAttribute()
     {
         var source = @"
