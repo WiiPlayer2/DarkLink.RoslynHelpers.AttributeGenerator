@@ -11,7 +11,7 @@ using System;
 using DarkLink.RoslynHelpers;
 
 [GenerateAttribute(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
-public class TestAttribute
+public partial class TestAttribute
 {
 }
 ";
@@ -27,7 +27,7 @@ using System;
 using DarkLink.RoslynHelpers;
 
 [GenerateAttribute(AttributeTargets.All)]
-public class TestAttribute
+public partial class TestAttribute
 {
 }
 ";

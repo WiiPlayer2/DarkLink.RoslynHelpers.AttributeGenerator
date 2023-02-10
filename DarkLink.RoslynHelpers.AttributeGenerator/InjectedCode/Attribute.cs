@@ -9,5 +9,5 @@ internal class GenerateAttributeAttribute : Attribute
 
     public bool AllowMultiple { get; set; }
 
-    public bool Inherited { get; set; } = true;
+    public bool Inherited { get; set; }
 }
