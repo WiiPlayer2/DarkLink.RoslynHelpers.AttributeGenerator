@@ -11,19 +11,20 @@ pipeline {
         stage('Cleanup') {
             steps {
                 sh 'rm -r ./packages || true'
+                sh 'dotnet clean'
             }
         }
 
         stage('Build') {
             steps {
-                sh 'dotnet build ./DarkLink.RoslynHelpers.AttributeGenerator.sln'
+                sh 'dotnet build ./DarkLink.RoslynHelpers.AttributeGenerator.sln --configuration Release'
             }
         }
 
         stage('Pack') {
             steps {
-                sh 'dotnet pack --no-build ./DarkLink.RoslynHelpers.AttributeGenerator.sln --output ./packages --version-suffix $(date +%s)'
-                sh 'dotnet pack --no-build ./DarkLink.RoslynHelpers.AttributeGenerator/DarkLink.RoslynHelpers.AttributeGenerator.csproj --output ./packages --version-suffix $(date +%s) -p:PackageId=DarkLink.RoslynHelpers.AttributeGenerator.Bootstrap'
+                sh 'dotnet pack --no-build ./DarkLink.RoslynHelpers.AttributeGenerator.sln --output ./packages --version-suffix $(date +%s) --configuration Release'
+                sh 'dotnet pack --no-build ./DarkLink.RoslynHelpers.AttributeGenerator/DarkLink.RoslynHelpers.AttributeGenerator.csproj --output ./packages --version-suffix $(date +%s) -p:PackageId=DarkLink.RoslynHelpers.AttributeGenerator.Bootstrap --configuration Release'
             }
         }
 
