@@ -19,6 +19,7 @@ namespace DarkLink.RoslynHelpers.AttributeGenerator.Test
                 typeof(IncrementalGeneratorPostInitializationContext),
                 typeof(TextReader),
                 typeof(ImmutableArray<>),
+                typeof(AttributeTargets),
             }.Select(t => MetadataReference.CreateFromFile(t.Assembly.Location))
                 .Concat(new[]
                 {

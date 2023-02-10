@@ -11,6 +11,23 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace DarkLink.RoslynHelpers.AttributeGenerator;
 
+//[GenerateAttribute(AttributeTargets.Class, Namespace = "DarkLink.RoslynHelpers", Name = "GenerateAttributeAttribute")]
+//internal partial class GenerateAttributeData2
+//{
+//    public AttributeTargets ValidOn { get; }
+
+//    public string? Namespace { get; }
+
+//    public string? Name { get; }
+
+//    public GenerateAttributeData2(AttributeTargets validOn, string? @namespace = default, string? @name = default)
+//    {
+//        ValidOn = validOn;
+//        Namespace = @namespace;
+//        Name = name;
+//    }
+//}
+
 [Generator]
 public class Generator : IIncrementalGenerator
 {
@@ -71,9 +88,6 @@ public class Generator : IIncrementalGenerator
             context.AddSource(resource, SourceText.From(stream, encoding, canBeEmbedded: true));
         }
     }
-
-    private void WriteFullNameConstantCode(TextWriter writer, AttributeDefinition definition)
-        => writer.WriteLine($"public const string ATTRIBUTE_NAME = {definition.FullName.ToLiteral()};");
 
     private void WriteAttributeGenerationCode(TextWriter writer, AttributeDefinition definition)
     {
@@ -156,8 +170,11 @@ public class Generator : IIncrementalGenerator
             => definition.Parameters
                 .Select(FormatArgument);
 
-        string FormatArgument(IParameterSymbol parameter) => $"{parameter.Name}: ___{parameter.Name}";
+        string FormatArgument(IParameterSymbol parameter) => $"{parameter.Name.SanitizeIdentifier()}: ___{parameter.Name}";
     }
+
+    private void WriteFullNameConstantCode(TextWriter writer, AttributeDefinition definition)
+        => writer.WriteLine($"public const string ATTRIBUTE_NAME = {definition.FullName.ToLiteral()};");
 
     private void WriteSymbolEnd(TextWriter writer, ISymbol currentSymbol)
     {
@@ -207,18 +224,18 @@ using Microsoft.CodeAnalysis.Text;
 
     private record AttributeDefinition(GenerateAttributeData Data, INamedTypeSymbol Type, IReadOnlyList<IParameterSymbol> Parameters)
     {
-        public string? Namespace
-            => Data.Namespace
-                ?? (Type.ContainingNamespace is {IsGlobalNamespace: false}
-                    ? Type.ContainingNamespace.ToDisplayString()
-                    : default);
-
-        public string Name => Data.Name ?? Type.Name;
-
         public string FullName
             => Namespace is not null
                 ? $"{Namespace}.{Name}"
                 : Name;
+
+        public string Name => Data.Name ?? Type.Name;
+
+        public string? Namespace
+            => Data.Namespace
+               ?? (Type.ContainingNamespace is {IsGlobalNamespace: false,}
+                   ? Type.ContainingNamespace.ToDisplayString()
+                   : default);
     }
 
     private record GenerateAttributeData(
