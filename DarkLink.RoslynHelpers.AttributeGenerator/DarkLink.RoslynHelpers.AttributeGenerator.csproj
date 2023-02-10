@@ -14,7 +14,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="DarkLink.RoslynHelpers.AttributeGenerator.Bootstrap" Version="0.0.1-1676031480">
+    <PackageReference Include="DarkLink.RoslynHelpers.AttributeGenerator.Bootstrap" Version="0.0.1-1676033763">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
