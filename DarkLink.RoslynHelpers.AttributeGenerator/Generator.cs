@@ -11,34 +11,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace DarkLink.RoslynHelpers.AttributeGenerator;
 
-[GenerateAttribute(AttributeTargets.Class, Namespace = "DarkLink.RoslynHelpers", Name = "GenerateAttributeAttribute")]
-internal partial class GenerateAttributeData2
-{
-    public AttributeTargets ValidOn { get; }
-
-    public bool AllowMultiple { get; }
-
-    public bool Inherited { get; }
-
-    public string? Namespace { get; }
-
-    public string? Name { get; }
-
-    public GenerateAttributeData2(AttributeTargets validOn, bool allowMultiple = false, bool inherited = true, string? @namespace = default, string? @name = default)
-    {
-        ValidOn = validOn;
-        AllowMultiple = allowMultiple;
-        Inherited = inherited;
-        Namespace = @namespace;
-        Name = name;
-    }
-}
-
 [Generator]
 public class Generator : IIncrementalGenerator
 {
-    private const string ATTRIBUTE_NAME = "DarkLink.RoslynHelpers.GenerateAttributeAttribute";
-
     private static readonly Encoding encoding = new UTF8Encoding(false);
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -46,7 +21,7 @@ public class Generator : IIncrementalGenerator
         context.RegisterPostInitializationOutput(PostInitialize);
 
         var definitions = context.SyntaxProvider.ForAttributeWithMetadataName(
-                ATTRIBUTE_NAME,
+                GenerateAttributeData.ATTRIBUTE_NAME,
                 (node, _) => node is ClassDeclarationSyntax,
                 (syntaxContext, _) =>
                 {
@@ -54,7 +29,7 @@ public class Generator : IIncrementalGenerator
                     if (type.Constructors.Length > 1)
                         return default;
 
-                    var data = GenerateAttributeData.FromAttribute(syntaxContext.Attributes.First());
+                    var data = GenerateAttributeData.From(syntaxContext.Attributes.First());
                     var parameters = type.Constructors.FirstOrDefault()?.Parameters ?? ImmutableArray<IParameterSymbol>.Empty;
 
                     return new AttributeDefinition(data, type, parameters);
@@ -84,7 +59,7 @@ public class Generator : IIncrementalGenerator
 
     private void PostInitialize(IncrementalGeneratorPostInitializationContext context)
     {
-        GenerateAttributeData2.AddTo(context);
+        GenerateAttributeData.AddTo(context);
 
         var assembly = typeof(Generator).Assembly;
         var injectedCodeResources = assembly.GetManifestResourceNames()
@@ -228,46 +203,5 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 ");
-    }
-
-    private record AttributeDefinition(GenerateAttributeData Data, INamedTypeSymbol Type, IReadOnlyList<IParameterSymbol> Parameters)
-    {
-        public string FullName
-            => Namespace is not null
-                ? $"{Namespace}.{Name}"
-                : Name;
-
-        public string Name => Data.Name ?? Type.Name;
-
-        public string? Namespace
-            => Data.Namespace
-               ?? (Type.ContainingNamespace is {IsGlobalNamespace: false,}
-                   ? Type.ContainingNamespace.ToDisplayString()
-                   : default);
-    }
-
-    private record GenerateAttributeData(
-        AttributeTargets ValidOn,
-        bool AllowMultiple,
-        bool Inherited,
-        string? Namespace,
-        string? Name)
-    {
-        public static GenerateAttributeData FromAttribute(AttributeData data)
-        {
-            var namedArguments = data.NamedArguments.ToDictionary(o => o.Key, o => o.Value);
-
-            var validOn = (AttributeTargets) data.ConstructorArguments[0].Value!;
-            var allowMultiple = GetNamedValueOrDefault(nameof(AllowMultiple), false);
-            var inherited = GetNamedValueOrDefault(nameof(Inherited), true);
-            var @namespace = GetNamedValueOrDefault(nameof(Namespace), default(string?));
-            var name = GetNamedValueOrDefault(nameof(Name), default(string?));
-            return new GenerateAttributeData(validOn, allowMultiple, inherited, @namespace, name);
-
-            T GetNamedValueOrDefault<T>(string name, T defaultValue)
-                => namedArguments.TryGetValue(name, out var value)
-                    ? (T) value.Value!
-                    : defaultValue;
-        }
     }
 }
