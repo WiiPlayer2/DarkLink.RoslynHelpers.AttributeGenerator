@@ -205,7 +205,7 @@ public class Generator : IIncrementalGenerator
         if (currentSymbol.Kind == SymbolKind.NetModule)
             return;
 
-        if (currentSymbol.ContainingSymbol is not null)
+        if (currentSymbol.ContainingSymbol is not null && currentSymbol is not INamespaceSymbol)
             WriteSymbolEnd(writer, currentSymbol.ContainingSymbol);
 
         if (currentSymbol is not INamespaceSymbol {IsGlobalNamespace: false,} and not ITypeSymbol)
@@ -220,13 +220,13 @@ public class Generator : IIncrementalGenerator
         if (currentSymbol.Kind == SymbolKind.NetModule)
             return;
 
-        if (currentSymbol.ContainingSymbol is not null)
+        if (currentSymbol.ContainingSymbol is not null && currentSymbol is not INamespaceSymbol)
             WriteSymbolStart(writer, currentSymbol.ContainingSymbol);
 
         switch (currentSymbol)
         {
             case INamespaceSymbol {IsGlobalNamespace: false,} namespaceSymbol:
-                writer.WriteLine($"namespace {namespaceSymbol.Name}");
+                writer.WriteLine($"namespace {namespaceSymbol.ToDisplayString()}");
                 writer.WriteLine("{");
                 writer.Indent++;
                 break;
