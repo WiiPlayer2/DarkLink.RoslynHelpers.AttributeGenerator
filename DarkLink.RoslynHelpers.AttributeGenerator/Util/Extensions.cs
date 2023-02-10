@@ -50,6 +50,16 @@ internal static class Extensions
             string stringValue => LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(stringValue)),
             int intValue => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(intValue)),
             bool boolValue => LiteralExpression(boolValue ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression),
+            byte byteValue => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(byteValue)),
+            char charValue => LiteralExpression(SyntaxKind.CharacterLiteralExpression, Literal(charValue)),
+            double doubleValue => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(doubleValue)),
+            float floatValue => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(floatValue)),
+            long longValue => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(longValue)),
+            sbyte sbyteValue => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(sbyteValue)),
+            short shortValue => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(shortValue)),
+            uint uintValue => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(uintValue)),
+            ulong ulongValue => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(ulongValue)),
+            ushort ushortValue => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(ushortValue)),
             _ => throw new NotImplementedException($"Not implemented for type {value.GetType().AssemblyQualifiedName}"),
         };
     }
