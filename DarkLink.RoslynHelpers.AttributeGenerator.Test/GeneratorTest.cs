@@ -90,13 +90,19 @@ internal partial class GenerateAttributeData2
 {
     public AttributeTargets ValidOn { get; }
 
+    public bool AllowMultiple { get; }
+
+    public bool Inherited { get; }
+
     public string? Namespace { get; }
 
     public string? Name { get; }
 
-    public GenerateAttributeData2(AttributeTargets validOn, string? @namespace = default, string? @name = default)
+    public GenerateAttributeData2(AttributeTargets validOn, bool allowMultiple = false, bool inherited = true, string? @namespace = default, string? @name = default)
     {
         ValidOn = validOn;
+        AllowMultiple = allowMultiple;
+        Inherited = inherited;
         Namespace = @namespace;
         Name = name;
     }

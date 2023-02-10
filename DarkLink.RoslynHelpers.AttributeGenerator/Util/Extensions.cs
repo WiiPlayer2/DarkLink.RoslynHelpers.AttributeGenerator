@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace DarkLink.RoslynHelpers.AttributeGenerator.Util;
@@ -19,14 +20,14 @@ internal static class Extensions
 
     public static string ToLiteral(this object? value)
     {
-        return value is null
-            ? "null"
-            : Map().ToString();
+        return Map().ToString();
 
-        SyntaxToken Map() => value switch
+        LiteralExpressionSyntax Map() => value switch
         {
-            string stringValue => Literal(stringValue),
-            int intValue => Literal(intValue),
+            null => LiteralExpression(SyntaxKind.NullLiteralExpression),
+            string stringValue => LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(stringValue)),
+            int intValue => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(intValue)),
+            bool boolValue => LiteralExpression(boolValue ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression),
             _ => throw new NotImplementedException($"Not implemented for type {value.GetType().AssemblyQualifiedName}"),
         };
     }
