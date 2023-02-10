@@ -12,10 +12,13 @@ internal class AttributeCodeWriter : IDisposable
 {
     private readonly StringWriter codeWriter;
 
+    private readonly AttributeDefinition definition;
+
     private readonly IndentedTextWriter writer;
 
-    public AttributeCodeWriter()
+    public AttributeCodeWriter(AttributeDefinition definition)
     {
+        this.definition = definition;
         codeWriter = new StringWriter();
         writer = new IndentedTextWriter(codeWriter, "    ");
     }
@@ -28,7 +31,7 @@ internal class AttributeCodeWriter : IDisposable
 
     public override string ToString() => codeWriter.ToString();
 
-    private void WriteAttributeGenerationCode(AttributeDefinition definition)
+    private void WriteAttributeGenerationCode()
     {
         writer.WriteLine("public static void AddTo(IncrementalGeneratorPostInitializationContext context)");
         writer.WriteLine("{");
@@ -92,7 +95,7 @@ internal class AttributeCodeWriter : IDisposable
         string FormatPropertyParameter(IParameterSymbol parameter) => $"public {parameter.Type.ToDisplayString()} {parameter.Name.Capitalize()} {{ get; set; }}";
     }
 
-    private void WriteAttributeParsingCode(AttributeDefinition definition)
+    private void WriteAttributeParsingCode()
     {
         writer.WriteLine($"public static {definition.Type.Name} From(AttributeData data)");
         writer.WriteLine("{");
@@ -134,22 +137,27 @@ internal class AttributeCodeWriter : IDisposable
         string FormatArgument(IParameterSymbol parameter) => $"{parameter.Name.SanitizeIdentifier()}: ___{parameter.Name}";
     }
 
-    public void WriteDefinition(AttributeDefinition definition)
+    public void WriteDefinition()
     {
         WriteHeader();
 
         WriteSymbolStart(definition.Type);
 
-        WriteFullNameConstantCode(definition);
+        WriteFullNameConstantCode();
         writer.WriteLineNoTabs(string.Empty);
-        WriteAttributeGenerationCode(definition);
+
+        WriteAttributeGenerationCode();
         writer.WriteLineNoTabs(string.Empty);
-        WriteAttributeParsingCode(definition);
+
+        WriteAttributeParsingCode();
+        writer.WriteLineNoTabs(string.Empty);
+
+        WriteMethodTryFrom();
 
         WriteSymbolEnd(definition.Type);
     }
 
-    private void WriteFullNameConstantCode(AttributeDefinition definition)
+    private void WriteFullNameConstantCode()
         => writer.WriteLine($"public const string ATTRIBUTE_NAME = {definition.FullName.ToLiteral()};");
 
     private void WriteHeader()
@@ -158,11 +166,44 @@ internal class AttributeCodeWriter : IDisposable
 #nullable enable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 ");
+    }
+
+    private void WriteMethodTryFrom()
+    {
+        writer.WriteLine($"public static bool TryFrom(AttributeData data, [NotNullWhen(true)] out {definition.Type.Name}? parsedData)");
+        writer.WriteLine("{");
+
+        using (writer.IndentScope())
+        {
+            writer.WriteLine("try");
+            writer.WriteLine("{");
+
+            using (writer.IndentScope())
+            {
+                writer.WriteLine("parsedData = From(data);");
+                writer.WriteLine("return true;");
+            }
+
+            writer.WriteLine("}");
+            writer.WriteLine("catch");
+            writer.WriteLine("{");
+
+            using (writer.IndentScope())
+            {
+                writer.WriteLine("parsedData = default;");
+                writer.WriteLine("return false;");
+            }
+
+            writer.WriteLine("}");
+        }
+
+        writer.WriteLine("}");
     }
 
     private void WriteSymbolEnd(ISymbol currentSymbol)

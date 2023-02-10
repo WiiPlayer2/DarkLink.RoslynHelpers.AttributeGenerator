@@ -48,8 +48,8 @@ public class Generator : IIncrementalGenerator
     private static void GenerateAttributeCode(SourceProductionContext productionContext, AttributeDefinition definition)
     {
         var hintName = $"{definition.Type.ToDisplayString()}.g.cs";
-        using var codeWriter = new AttributeCodeWriter();
-        codeWriter.WriteDefinition(definition);
+        using var codeWriter = new AttributeCodeWriter(definition);
+        codeWriter.WriteDefinition();
         var code = codeWriter.ToString();
         productionContext.AddSource(hintName, SourceText.From(code, encoding));
     }
