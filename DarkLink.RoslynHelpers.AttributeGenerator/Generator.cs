@@ -39,7 +39,7 @@ public class Generator : IIncrementalGenerator
             .Where(o => o is not null)
             .Select((o, _) => o!);
 
-        context.RegisterSourceOutput(definitions, async (productionContext, definition) =>
+        context.RegisterSourceOutput(definitions, (productionContext, definition) =>
         {
             var hintName = $"{definition.Type.ToDisplayString()}.g.cs";
             using var codeWriter = new StringWriter();

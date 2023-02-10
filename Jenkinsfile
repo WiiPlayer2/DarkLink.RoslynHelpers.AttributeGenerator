@@ -23,6 +23,7 @@ pipeline {
         stage('Pack') {
             steps {
                 sh 'dotnet pack --no-build ./DarkLink.RoslynHelpers.AttributeGenerator.sln --output ./packages --version-suffix $(date +%s)'
+                sh 'dotnet pack --no-build ./DarkLink.RoslynHelpers.AttributeGenerator/DarkLink.RoslynHelpers.AttributeGenerator.csproj --output ./packages --version-suffix $(date +%s) -p:PackageId=DarkLink.RoslynHelpers.AttributeGenerator.Bootstrap'
             }
         }
 
