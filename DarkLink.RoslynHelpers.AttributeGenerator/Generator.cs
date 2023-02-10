@@ -49,6 +49,7 @@ public class Generator : IIncrementalGenerator
             WriteSymbolStart(codeWriter, definition.Type);
 
             WriteAttributeGenerationCode(codeWriter, definition);
+            WriteAttributeParsingCode(codeWriter, definition);
 
             WriteSymbolEnd(codeWriter, definition.Type);
 
@@ -77,6 +78,13 @@ public class Generator : IIncrementalGenerator
         writer.WriteLine($"const string hintName = \"{definition.Type.ToDisplayString()}.g.cs\";");
         writer.WriteLine("const string code = @\"");
         writer.WriteLine("using System;");
+
+        if (definition.Namespace is not null)
+        {
+            writer.WriteLine($"namespace {definition.Namespace}");
+            writer.WriteLine("{");
+        }
+
         writer.WriteLine($"[AttributeUsage((AttributeTargets){(int) definition.Data.ValidOn}, AllowMultiple = {definition.Data.AllowMultiple}, Inherited = {definition.Data.Inherited})]");
         writer.WriteLine($"public class {definition.Type.Name} : Attribute");
         writer.WriteLine("{");
@@ -84,8 +92,11 @@ public class Generator : IIncrementalGenerator
         foreach (var propertyParameter in GetPropertyParameters())
             writer.WriteLine(propertyParameter);
         writer.WriteLine("}");
+
+        if (definition.Namespace is not null) writer.WriteLine("}");
+
         writer.WriteLine("\";");
-        writer.WriteLine("var sourceText = SourceText.From(code, new Utf8Encoding(false));");
+        writer.WriteLine("var sourceText = SourceText.From(code, new UTF8Encoding(false));");
         writer.WriteLine("context.AddSource(hintName, sourceText);");
         writer.WriteLine("}");
 
@@ -102,6 +113,46 @@ public class Generator : IIncrementalGenerator
         string FormatConstructorParameter(IParameterSymbol parameter) => $"{parameter.Type.ToDisplayString()} {parameter.Name}";
 
         string FormatPropertyParameter(IParameterSymbol parameter) => $"public {parameter.Type.ToDisplayString()} {parameter.Name.Capitalize()} {{ get; set; }}";
+    }
+
+    private void WriteAttributeParsingCode(TextWriter writer, AttributeDefinition definition)
+    {
+        writer.WriteLine($"public static {definition.Type.Name} From(AttributeData data)");
+        writer.WriteLine("{");
+        writer.WriteLine("var namedArguments = data.NamedArguments.ToDictionary(o => o.Key, o => o.Value);");
+
+        var requiredParameters = GetRequiredParameters();
+        for (var i = 0; i < requiredParameters.Count; i++)
+        {
+            var parameter = requiredParameters[i];
+            writer.WriteLine($"var ___{parameter.Name} = ({parameter.Type.ToDisplayString()})data.ConstructorArguments[{i}].Value!;");
+        }
+
+        foreach (var parameter in GetOptionalParameters()) writer.WriteLine($"var ___{parameter.Name} = GetNamedValueOrDefault<{parameter.Type.ToDisplayString()}>(\"{parameter.Name.Capitalize()}\", {parameter.ExplicitDefaultValue.ToLiteral()});");
+
+        writer.WriteLine($"return new({string.Join(", ", GetFormattedArguments())});");
+
+        writer.WriteLine(@"T GetNamedValueOrDefault<T>(string name, T defaultValue)
+                => namedArguments.TryGetValue(name, out var value)
+                    ? (T) value.Value!
+                    : defaultValue;");
+        writer.WriteLine("}");
+
+        IReadOnlyList<IParameterSymbol> GetRequiredParameters()
+            => definition.Parameters
+                .Where(p => !p.HasExplicitDefaultValue)
+                .ToList();
+
+        IReadOnlyList<IParameterSymbol> GetOptionalParameters()
+            => definition.Parameters
+                .Where(p => p.HasExplicitDefaultValue)
+                .ToList();
+
+        IEnumerable<string> GetFormattedArguments()
+            => definition.Parameters
+                .Select(FormatArgument);
+
+        string FormatArgument(IParameterSymbol parameter) => $"{parameter.Name}: ___{parameter.Name}";
     }
 
     private void WriteSymbolEnd(TextWriter writer, ISymbol currentSymbol)
@@ -143,11 +194,20 @@ public class Generator : IIncrementalGenerator
     private void WriteUsings(TextWriter writer)
     {
         writer.WriteLine(@"using System;
+using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 ");
     }
 
-    private record AttributeDefinition(GenerateAttributeData Data, INamedTypeSymbol Type, IReadOnlyList<IParameterSymbol> Parameters);
+    private record AttributeDefinition(GenerateAttributeData Data, INamedTypeSymbol Type, IReadOnlyList<IParameterSymbol> Parameters)
+    {
+        public string? Namespace
+            => Type.ContainingNamespace is {IsGlobalNamespace: false}
+                ? Type.ContainingNamespace.ToDisplayString()
+                : default;
+    }
 
     private record GenerateAttributeData(AttributeTargets ValidOn, bool AllowMultiple, bool Inherited)
     {

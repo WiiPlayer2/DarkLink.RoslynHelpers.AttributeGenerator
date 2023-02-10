@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Collections.Immutable;
+using System.Text;
 
 namespace DarkLink.RoslynHelpers.AttributeGenerator.Test
 {
@@ -15,10 +16,14 @@ namespace DarkLink.RoslynHelpers.AttributeGenerator.Test
                 {
                 typeof(object),
                 typeof(Enumerable),
+                typeof(IncrementalGeneratorPostInitializationContext),
+                typeof(TextReader),
+                typeof(ImmutableArray<>),
             }.Select(t => MetadataReference.CreateFromFile(t.Assembly.Location))
                 .Concat(new[]
                 {
                 MetadataReference.CreateFromFile(Path.Combine(assemblyDirectory, "System.Runtime.dll")),
+                MetadataReference.CreateFromFile(Path.Combine(assemblyDirectory, "System.Runtime.Extensions.dll")),
                 MetadataReference.CreateFromFile(Path.Combine(assemblyDirectory, "System.Collections.dll")),
                 });
 
