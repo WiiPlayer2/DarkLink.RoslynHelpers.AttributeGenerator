@@ -85,16 +85,6 @@ public class Generator : IIncrementalGenerator
     private void PostInitialize(IncrementalGeneratorPostInitializationContext context)
     {
         GenerateAttributeData.AddTo(context);
-
-        var assembly = typeof(Generator).Assembly;
-        var injectedCodeResources = assembly.GetManifestResourceNames()
-            .Where(name => name.Contains("InjectedCode"));
-
-        foreach (var resource in injectedCodeResources)
-        {
-            using var stream = assembly.GetManifestResourceStream(resource)!;
-            context.AddSource(resource, SourceText.From(stream, encoding, canBeEmbedded: true));
-        }
     }
 
     private void WriteAttributeGenerationCode(TextWriter writer, AttributeDefinition definition)
