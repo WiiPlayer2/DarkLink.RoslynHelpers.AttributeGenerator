@@ -16,7 +16,7 @@ partial class GenerateAttributeData2
 public const string ATTRIBUTE_NAME = "DarkLink.RoslynHelpers.GenerateAttributeAttribute";
 public static void AddTo(IncrementalGeneratorPostInitializationContext context)
 {
-const string hintName = "DarkLink.RoslynHelpers.AttributeGenerator.GenerateAttributeData2.g.cs";
+const string hintName = "DarkLink.RoslynHelpers.GenerateAttributeAttribute.g.cs";
 const string code = @"
 using System;
 namespace DarkLink.RoslynHelpers

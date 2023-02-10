@@ -10,7 +10,7 @@ partial class TestAttribute
 public const string ATTRIBUTE_NAME = "OtherNamespace.Here.OtherNameAttribute";
 public static void AddTo(IncrementalGeneratorPostInitializationContext context)
 {
-const string hintName = "TestAttribute.g.cs";
+const string hintName = "OtherNamespace.Here.OtherNameAttribute.g.cs";
 const string code = @"
 using System;
 namespace OtherNamespace.Here

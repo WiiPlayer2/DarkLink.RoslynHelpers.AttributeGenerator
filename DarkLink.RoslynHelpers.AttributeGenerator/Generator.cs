@@ -11,22 +11,28 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace DarkLink.RoslynHelpers.AttributeGenerator;
 
-//[GenerateAttribute(AttributeTargets.Class, Namespace = "DarkLink.RoslynHelpers", Name = "GenerateAttributeAttribute")]
-//internal partial class GenerateAttributeData2
-//{
-//    public AttributeTargets ValidOn { get; }
+[GenerateAttribute(AttributeTargets.Class, Namespace = "DarkLink.RoslynHelpers", Name = "GenerateAttributeAttribute")]
+internal partial class GenerateAttributeData2
+{
+    public AttributeTargets ValidOn { get; }
 
-//    public string? Namespace { get; }
+    public bool AllowMultiple { get; }
 
-//    public string? Name { get; }
+    public bool Inherited { get; }
 
-//    public GenerateAttributeData2(AttributeTargets validOn, string? @namespace = default, string? @name = default)
-//    {
-//        ValidOn = validOn;
-//        Namespace = @namespace;
-//        Name = name;
-//    }
-//}
+    public string? Namespace { get; }
+
+    public string? Name { get; }
+
+    public GenerateAttributeData2(AttributeTargets validOn, bool allowMultiple = false, bool inherited = true, string? @namespace = default, string? @name = default)
+    {
+        ValidOn = validOn;
+        AllowMultiple = allowMultiple;
+        Inherited = inherited;
+        Namespace = @namespace;
+        Name = name;
+    }
+}
 
 [Generator]
 public class Generator : IIncrementalGenerator
@@ -78,6 +84,8 @@ public class Generator : IIncrementalGenerator
 
     private void PostInitialize(IncrementalGeneratorPostInitializationContext context)
     {
+        GenerateAttributeData2.AddTo(context);
+
         var assembly = typeof(Generator).Assembly;
         var injectedCodeResources = assembly.GetManifestResourceNames()
             .Where(name => name.Contains("InjectedCode"));
