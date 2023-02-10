@@ -61,11 +61,10 @@ public class Generator : IIncrementalGenerator
     }
 
     private static AttributeDefinition? TransformDefinition(
-        (GeneratorAttributeSyntaxContext syntaxContext, IReadOnlyList<GenerateAttributeData> attributes) pair,
+        GeneratorAttributeSyntaxContext syntaxContext,
+        IReadOnlyList<GenerateAttributeData> attributes,
         CancellationToken cancellationToken)
     {
-        var (syntaxContext, attributes) = pair;
-
         var type = (INamedTypeSymbol) syntaxContext.TargetSymbol;
         var typeKind = type.FindTypeKind();
         var parameters = FindParameters(type, typeKind);
