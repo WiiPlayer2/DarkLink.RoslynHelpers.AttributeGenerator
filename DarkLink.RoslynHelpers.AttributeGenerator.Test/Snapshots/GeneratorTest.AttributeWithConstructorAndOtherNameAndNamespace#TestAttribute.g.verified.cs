@@ -15,7 +15,7 @@ const string code = @"
 using System;
 namespace OtherNamespace.Here
 {
-[AttributeUsage((AttributeTargets)32767, AllowMultiple = False, Inherited = True)]
+[AttributeUsage((AttributeTargets)32767, AllowMultiple = false, Inherited = true)]
 public class OtherNameAttribute : Attribute
 {
 public OtherNameAttribute(string requiredArgument) { }

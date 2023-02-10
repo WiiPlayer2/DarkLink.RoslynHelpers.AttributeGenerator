@@ -21,7 +21,7 @@ const string code = @"
 using System;
 namespace DarkLink.RoslynHelpers
 {
-[AttributeUsage((AttributeTargets)4, AllowMultiple = False, Inherited = True)]
+[AttributeUsage((AttributeTargets)4, AllowMultiple = false, Inherited = true)]
 public class GenerateAttributeAttribute : Attribute
 {
 public GenerateAttributeAttribute(System.AttributeTargets validOn) { }

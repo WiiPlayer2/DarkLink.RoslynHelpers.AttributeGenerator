@@ -13,7 +13,7 @@ public static void AddTo(IncrementalGeneratorPostInitializationContext context)
 const string hintName = "TestAttribute.g.cs";
 const string code = @"
 using System;
-[AttributeUsage((AttributeTargets)32767, AllowMultiple = True, Inherited = False)]
+[AttributeUsage((AttributeTargets)32767, AllowMultiple = true, Inherited = false)]
 public class TestAttribute : Attribute
 {
 public TestAttribute() { }
