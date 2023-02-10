@@ -57,7 +57,7 @@ public class TestAttribute : Attribute
     public static IncrementalValuesProvider<T> Find<T>(
         SyntaxValueProvider syntaxValueProvider,
         Func<SyntaxNode, CancellationToken, bool> predicate,
-        Func<(GeneratorAttributeSyntaxContext Context, IReadOnlyList<TestAttribute> Attributes), CancellationToken, T> transform)
+        Func<GeneratorAttributeSyntaxContext, IReadOnlyList<TestAttribute>, CancellationToken, T> transform)
         => syntaxValueProvider.ForAttributeWithMetadataName(
             ATTRIBUTE_NAME,
             predicate,
@@ -75,5 +75,5 @@ public class TestAttribute : Attribute
                 return (context, attributes);
             })
             .Where(pair => pair.attributes.Any())
-            .Select(transform);
+            .Select((pair, ct) => transform(pair.context, pair.attributes, ct));
 }

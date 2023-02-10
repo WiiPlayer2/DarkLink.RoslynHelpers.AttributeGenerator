@@ -61,7 +61,7 @@ namespace DarkLink.RoslynHelpers.AttributeGenerator
         public static IncrementalValuesProvider<T> Find<T>(
             SyntaxValueProvider syntaxValueProvider,
             Func<SyntaxNode, CancellationToken, bool> predicate,
-            Func<(GeneratorAttributeSyntaxContext Context, IReadOnlyList<TypedData> Attributes), CancellationToken, T> transform)
+            Func<GeneratorAttributeSyntaxContext, IReadOnlyList<TypedData>, CancellationToken, T> transform)
             => syntaxValueProvider.ForAttributeWithMetadataName(
                 ATTRIBUTE_NAME,
                 predicate,
@@ -79,6 +79,6 @@ namespace DarkLink.RoslynHelpers.AttributeGenerator
                     return (context, attributes);
                 })
                 .Where(pair => pair.attributes.Any())
-                .Select(transform);
+                .Select((pair, ct) => transform(pair.context, pair.attributes, ct));
     }
 }
