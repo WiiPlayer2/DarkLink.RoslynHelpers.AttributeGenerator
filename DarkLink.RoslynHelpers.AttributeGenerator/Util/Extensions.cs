@@ -1,5 +1,6 @@
 ﻿using System;
 using System.CodeDom.Compiler;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -30,6 +31,14 @@ internal static class Extensions
         => SyntaxFacts.GetKeywordKind(identifier) != SyntaxKind.None || SyntaxFacts.GetContextualKeywordKind(identifier) != SyntaxKind.None
             ? $"@{identifier}"
             : identifier;
+
+    public static string ToDefaultLiteral(this IParameterSymbol parameter)
+    {
+        if (parameter.Type.TypeKind == Microsoft.CodeAnalysis.TypeKind.Enum)
+            return $"(({parameter.Type.ToDisplayString()}){parameter.ExplicitDefaultValue.ToLiteral()})";
+
+        return parameter.ExplicitDefaultValue.ToLiteral();
+    }
 
     public static string ToLiteral(this object? value)
     {
