@@ -153,6 +153,9 @@ internal class AttributeCodeWriter : IDisposable
         writer.WriteLineNoTabs(string.Empty);
 
         WriteMethodTryFrom();
+        writer.WriteLineNoTabs(string.Empty);
+
+        WriteMethodFind();
 
         WriteSymbolEnd(definition.Type);
     }
@@ -166,12 +169,63 @@ internal class AttributeCodeWriter : IDisposable
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 ");
+    }
+
+    private void WriteMethodFind()
+    {
+        writer.WriteLine("public static IncrementalValuesProvider<T> Find<T>(");
+        writer.WriteLine("    SyntaxValueProvider syntaxValueProvider,");
+        writer.WriteLine("    Func<SyntaxNode, CancellationToken, bool> predicate,");
+        writer.WriteLine($"    Func<(GeneratorAttributeSyntaxContext Context, IReadOnlyList<{definition.Type.Name}> Attributes), CancellationToken, T> transform)");
+
+        using (writer.IndentScope())
+        {
+            writer.WriteLine("=> syntaxValueProvider.ForAttributeWithMetadataName(");
+
+            using (writer.IndentScope())
+            {
+                writer.WriteLine("ATTRIBUTE_NAME,");
+                writer.WriteLine("predicate,");
+                writer.WriteLine("(context, cancellationToken) =>");
+                writer.WriteLine("{");
+
+                using (writer.IndentScope())
+                {
+                    writer.WriteLine($"var attributes = (IReadOnlyList<{definition.Type.Name}>) context.Attributes");
+
+                    using (writer.IndentScope())
+                    {
+                        writer.WriteLine(".Select(data =>");
+                        writer.WriteLine("{");
+
+                        using (writer.IndentScope())
+                        {
+                            writer.WriteLine("var result = TryFrom(data, out var attribute);");
+                            writer.WriteLine("return (result, attribute);");
+                        }
+
+                        writer.WriteLine("})");
+                        writer.WriteLine(".Where(pair => pair.result)");
+                        writer.WriteLine(".Select(pair => pair.attribute!)");
+                        writer.WriteLine(".ToList();");
+                    }
+
+                    writer.WriteLine("return (context, attributes);");
+                }
+
+                writer.WriteLine("})");
+                writer.WriteLine(".Where(pair => pair.attributes.Any())");
+                writer.WriteLine(".Select(transform);");
+            }
+        }
     }
 
     private void WriteMethodTryFrom()
