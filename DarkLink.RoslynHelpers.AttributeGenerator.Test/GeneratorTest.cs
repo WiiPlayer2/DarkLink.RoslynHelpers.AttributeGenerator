@@ -166,7 +166,7 @@ internal partial record TypedData({typeName} argument);
         public static IEnumerable<TypeInfo> Specials => new TypeInfo[]
         {
             new("object", "null"),
-            new("System.Type", "null"),
+            new("Microsoft.CodeAnalysis.INamedTypeSymbol", "null"),
         };
 
         public record TypeInfo(string TypeName, string ExampleValue);

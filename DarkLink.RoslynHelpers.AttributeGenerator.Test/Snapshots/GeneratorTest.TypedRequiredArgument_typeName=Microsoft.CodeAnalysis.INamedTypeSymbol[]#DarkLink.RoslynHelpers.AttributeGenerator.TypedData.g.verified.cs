@@ -27,8 +27,7 @@ namespace DarkLink.RoslynHelpers.AttributeGenerator
     [AttributeUsage((AttributeTargets)32767, AllowMultiple = false, Inherited = true)]
     public class TypedData : Attribute
     {
-        public TypedData() { }
-        public System.Type[] Argument { get; set; }
+        public TypedData(System.Type[] argument) { }
     }
 }
 ";
@@ -39,7 +38,7 @@ namespace DarkLink.RoslynHelpers.AttributeGenerator
         public static TypedData From(AttributeData data)
         {
             var namedArguments = data.NamedArguments.ToDictionary(o => o.Key, o => o.Value);
-            var ___argument = GetNamedValueOrDefault<System.Type[]>("Argument", null);
+            var ___argument = (Microsoft.CodeAnalysis.INamedTypeSymbol[])data.ConstructorArguments[0].Value!;
             return new(argument: ___argument);
             T GetNamedValueOrDefault<T>(string name, T defaultValue) => namedArguments.TryGetValue(name, out var value) ? (T) value.Value! : defaultValue;
         }

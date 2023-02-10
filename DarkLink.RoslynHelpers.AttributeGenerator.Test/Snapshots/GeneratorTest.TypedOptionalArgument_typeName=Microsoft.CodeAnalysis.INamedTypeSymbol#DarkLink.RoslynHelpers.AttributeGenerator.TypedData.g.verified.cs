@@ -39,7 +39,7 @@ namespace DarkLink.RoslynHelpers.AttributeGenerator
         public static TypedData From(AttributeData data)
         {
             var namedArguments = data.NamedArguments.ToDictionary(o => o.Key, o => o.Value);
-            var ___argument = GetNamedValueOrDefault<System.Type>("Argument", null);
+            var ___argument = GetNamedValueOrDefault<Microsoft.CodeAnalysis.INamedTypeSymbol>("Argument", null);
             return new(argument: ___argument);
             T GetNamedValueOrDefault<T>(string name, T defaultValue) => namedArguments.TryGetValue(name, out var value) ? (T) value.Value! : defaultValue;
         }
