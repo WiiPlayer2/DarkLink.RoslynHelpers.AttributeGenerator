@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -19,13 +21,20 @@ public class Generator : IIncrementalGenerator
         context.RegisterPostInitializationOutput(PostInitialize);
 
         var definitions = context.SyntaxProvider.ForAttributeWithMetadataName(
-            ATTRIBUTE_NAME,
-            (node, _) => node is ClassDeclarationSyntax,
-            (syntaxContext, _) =>
-            {
-                var data = GenerateAttributeData.FromAttribute(syntaxContext.Attributes.First());
-                return new AttributeDefinition(data);
-            });
+                ATTRIBUTE_NAME,
+                (node, _) => node is ClassDeclarationSyntax,
+                (syntaxContext, _) =>
+                {
+                    var type = (INamedTypeSymbol) syntaxContext.TargetSymbol;
+                    if (type.Constructors.Length > 1)
+                        return default;
+
+                    var data = GenerateAttributeData.FromAttribute(syntaxContext.Attributes.First());
+                    var parameters = type.Constructors.FirstOrDefault()?.Parameters ?? ImmutableArray<IParameterSymbol>.Empty;
+
+                    return new AttributeDefinition(data, type, parameters);
+                })
+            .Where(o => o is not null);
 
         context.RegisterSourceOutput(definitions, (productionContext, definition) => { });
     }
@@ -43,7 +52,7 @@ public class Generator : IIncrementalGenerator
         }
     }
 
-    private record AttributeDefinition(GenerateAttributeData Data);
+    private record AttributeDefinition(GenerateAttributeData Data, INamedTypeSymbol Type, IReadOnlyList<IParameterSymbol> Parameters);
 
     private record GenerateAttributeData(AttributeTargets ValidOn, bool AllowMultiple, bool Inherited)
     {
