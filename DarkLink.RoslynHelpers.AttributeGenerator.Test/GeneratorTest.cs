@@ -3,6 +3,8 @@ namespace DarkLink.RoslynHelpers.AttributeGenerator.Test;
 [TestClass]
 public class GeneratorTest : VerifySourceGenerator
 {
+    public static IEnumerable<object[]> TypedOptionalArgumentsData => Types.All.Select(t => new[] {t.TypeName, t.ExampleValue,});
+
     public static IEnumerable<object[]> TypedRequiredArgumentsData => Types.All.Select(t => new[] {t.TypeName,});
 
     [TestMethod]
@@ -99,6 +101,22 @@ internal partial record GenerateAttributeData2(
         await Verify(source);
     }
 
+    [DynamicData(nameof(TypedOptionalArgumentsData))]
+    [DataTestMethod]
+    public async Task TypedOptionalArgument(string typeName, string defaultValue)
+    {
+        var source = $@"
+using System;
+
+namespace DarkLink.RoslynHelpers.AttributeGenerator;
+
+[GenerateAttribute(AttributeTargets.All)]
+internal partial record TypedData({typeName} argument = {defaultValue});
+";
+
+        await Verify(source, task => task.UseParameters(typeName));
+    }
+
     [DynamicData(nameof(TypedRequiredArgumentsData))]
     [DataTestMethod]
     public async Task TypedRequiredArgument(string typeName)
@@ -119,7 +137,7 @@ internal partial record TypedData({typeName} argument);
     {
         public static IEnumerable<TypeInfo> All => Scalars.Concat(Arrays);
 
-        public static IEnumerable<TypeInfo> Arrays => Scalars.Select(t => new TypeInfo($"{t.TypeName}[]", $"new {t.TypeName}[]{{ {t.ExampleValue} }}"));
+        public static IEnumerable<TypeInfo> Arrays => Scalars.Select(t => new TypeInfo($"{t.TypeName}[]", "null"));
 
         public static IEnumerable<TypeInfo> Enums => new TypeInfo[]
         {
@@ -140,7 +158,7 @@ internal partial record TypedData({typeName} argument);
             new("string", "\"henlo dere\""),
             new("uint", "42069U"),
             new("ulong", "42069UL"),
-            new("ushort", "69U"),
+            new("ushort", "69"),
         };
 
         public static IEnumerable<TypeInfo> Scalars => Primitives.Concat(Specials).Concat(Enums);
@@ -148,7 +166,7 @@ internal partial record TypedData({typeName} argument);
         public static IEnumerable<TypeInfo> Specials => new TypeInfo[]
         {
             new("object", "null"),
-            new("System.Type", "typeof(object)"),
+            new("System.Type", "null"),
         };
 
         public record TypeInfo(string TypeName, string ExampleValue);
