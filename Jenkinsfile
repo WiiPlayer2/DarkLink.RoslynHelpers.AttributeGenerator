@@ -17,14 +17,20 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'dotnet build ./DarkLink.RoslynHelpers.AttributeGenerator.sln --configuration Release'
+                sh 'dotnet build --configuration Release'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'dotnet test --no-build --configuration Release'
             }
         }
 
         stage('Pack') {
             steps {
-                sh 'dotnet pack --no-build ./DarkLink.RoslynHelpers.AttributeGenerator.sln --output ./packages --version-suffix $(date +%s) --configuration Release'
-                sh 'dotnet pack --no-build ./DarkLink.RoslynHelpers.AttributeGenerator/DarkLink.RoslynHelpers.AttributeGenerator.csproj --output ./packages --version-suffix $(date +%s) -p:PackageId=DarkLink.RoslynHelpers.AttributeGenerator.Bootstrap --configuration Release'
+                sh 'dotnet pack --no-build --configuration Release --output ./packages --version-suffix $(date +%s)'
+                sh 'dotnet pack --no-build ./DarkLink.RoslynHelpers.AttributeGenerator/DarkLink.RoslynHelpers.AttributeGenerator.csproj --configuration Release --output ./packages --version-suffix $(date +%s) -p:PackageId=DarkLink.RoslynHelpers.AttributeGenerator.Bootstrap'
             }
         }
 
