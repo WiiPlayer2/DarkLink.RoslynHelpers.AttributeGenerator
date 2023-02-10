@@ -184,7 +184,7 @@ using Microsoft.CodeAnalysis.Text;
         writer.WriteLine("public static IncrementalValuesProvider<T> Find<T>(");
         writer.WriteLine("    SyntaxValueProvider syntaxValueProvider,");
         writer.WriteLine("    Func<SyntaxNode, CancellationToken, bool> predicate,");
-        writer.WriteLine($"    Func<(GeneratorAttributeSyntaxContext Context, IReadOnlyList<{definition.Type.Name}> Attributes), CancellationToken, T> transform)");
+        writer.WriteLine($"    Func<GeneratorAttributeSyntaxContext, IReadOnlyList<{definition.Type.Name}>, CancellationToken, T> transform)");
 
         using (writer.IndentScope())
         {
@@ -223,7 +223,7 @@ using Microsoft.CodeAnalysis.Text;
 
                 writer.WriteLine("})");
                 writer.WriteLine(".Where(pair => pair.attributes.Any())");
-                writer.WriteLine(".Select(transform);");
+                writer.WriteLine(".Select((pair, ct) => transform(pair.context, pair.attributes, ct));");
             }
         }
     }
