@@ -18,10 +18,16 @@ public class Generator : IIncrementalGenerator
     {
         context.RegisterPostInitializationOutput(PostInitialize);
 
-        context.SyntaxProvider.ForAttributeWithMetadataName(
+        var definitions = context.SyntaxProvider.ForAttributeWithMetadataName(
             ATTRIBUTE_NAME,
             (node, _) => node is ClassDeclarationSyntax,
-            (syntaxContext, _) => { return new AttributeDefinition(); });
+            (syntaxContext, _) =>
+            {
+                var data = GenerateAttributeData.FromAttribute(syntaxContext.Attributes.First());
+                return new AttributeDefinition(data);
+            });
+
+        context.RegisterSourceOutput(definitions, (productionContext, definition) => { });
     }
 
     private void PostInitialize(IncrementalGeneratorPostInitializationContext context)
@@ -37,5 +43,23 @@ public class Generator : IIncrementalGenerator
         }
     }
 
-    private record AttributeDefinition;
+    private record AttributeDefinition(GenerateAttributeData Data);
+
+    private record GenerateAttributeData(AttributeTargets ValidOn, bool AllowMultiple, bool Inherited)
+    {
+        public static GenerateAttributeData FromAttribute(AttributeData data)
+        {
+            var namedArguments = data.NamedArguments.ToDictionary(o => o.Key, o => o.Value);
+
+            var validOn = (AttributeTargets) data.ConstructorArguments[0].Value!;
+            var allowMultiple = GetNamedValueOrDefault(nameof(AllowMultiple), false);
+            var inherited = GetNamedValueOrDefault(nameof(Inherited), true);
+            return new GenerateAttributeData(validOn, allowMultiple, inherited);
+
+            T GetNamedValueOrDefault<T>(string name, T defaultValue)
+                => namedArguments.TryGetValue(name, out var value)
+                    ? (T) value.Value!
+                    : defaultValue;
+        }
+    }
 }

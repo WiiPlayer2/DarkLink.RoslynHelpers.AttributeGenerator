@@ -1,4 +1,5 @@
-﻿using System;
+﻿//HintName: DarkLink.RoslynHelpers.AttributeGenerator.InjectedCode.Attribute.cs
+using System;
 
 namespace DarkLink.RoslynHelpers;
 
