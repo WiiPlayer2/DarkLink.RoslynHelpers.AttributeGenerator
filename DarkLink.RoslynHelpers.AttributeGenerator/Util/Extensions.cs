@@ -14,6 +14,14 @@ internal static class Extensions
             ? string.Empty
             : $"{char.ToUpperInvariant(value[0])}{value[1..]}";
 
+    public static TypeKind FindTypeKind(this ITypeSymbol type)
+    {
+        if (type.IsRecord)
+            return TypeKind.Record;
+
+        return TypeKind.Class;
+    }
+
     public static IDisposable IndentScope(this IndentedTextWriter indentedTextWriter)
     {
         indentedTextWriter.Indent++;
