@@ -36,6 +36,23 @@ public partial class TestAttribute
     }
 
     [TestMethod]
+    public async Task DefaultAttributeWithConstructor()
+    {
+        var source = @"
+using System;
+using DarkLink.RoslynHelpers;
+
+[GenerateAttribute(AttributeTargets.All)]
+public partial class TestAttribute
+{
+    public TestAttribute(string requiredArgument, int optionalArgument = 42) { }
+}
+";
+
+        await Verify(source);
+    }
+
+    [TestMethod]
     public async Task Empty()
     {
         var source = string.Empty;
