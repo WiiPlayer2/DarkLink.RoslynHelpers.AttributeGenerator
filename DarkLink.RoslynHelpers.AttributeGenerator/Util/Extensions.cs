@@ -27,7 +27,7 @@ internal static class Extensions
         {
             string stringValue => Literal(stringValue),
             int intValue => Literal(intValue),
-            _ => throw new NotImplementedException(),
+            _ => throw new NotImplementedException($"Not implemented for type {value.GetType().AssemblyQualifiedName}"),
         };
     }
 }
