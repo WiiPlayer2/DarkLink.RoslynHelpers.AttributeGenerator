@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -11,6 +12,19 @@ internal static class Extensions
         => string.IsNullOrEmpty(value)
             ? string.Empty
             : $"{char.ToUpperInvariant(value[0])}{value[1..]}";
+
+    public static IDisposable IndentScope(this IndentedTextWriter indentedTextWriter)
+    {
+        indentedTextWriter.Indent++;
+        return Disposable.Create(() => indentedTextWriter.Indent--);
+    }
+
+    public static IDisposable ResetScope(this IndentedTextWriter indentedTextWriter)
+    {
+        var previousIndent = indentedTextWriter.Indent;
+        indentedTextWriter.Indent = 0;
+        return Disposable.Create(() => indentedTextWriter.Indent = previousIndent);
+    }
 
     public static string SanitizeIdentifier(this string identifier)
         => SyntaxFacts.GetKeywordKind(identifier) != SyntaxKind.None || SyntaxFacts.GetContextualKeywordKind(identifier) != SyntaxKind.None

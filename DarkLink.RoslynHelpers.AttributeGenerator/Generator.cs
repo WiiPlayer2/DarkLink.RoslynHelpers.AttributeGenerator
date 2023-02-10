@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -40,17 +41,20 @@ public class Generator : IIncrementalGenerator
         context.RegisterSourceOutput(definitions, (productionContext, definition) =>
         {
             var hintName = $"{definition.Type.ToDisplayString()}.g.cs";
-            using var codeWriter = new StringWriter();
+            var codeWriter = new StringWriter();
+            using var indentedTextWriter = new IndentedTextWriter(codeWriter, "    ");
 
-            WriteUsings(codeWriter);
+            WriteUsings(indentedTextWriter);
 
-            WriteSymbolStart(codeWriter, definition.Type);
+            WriteSymbolStart(indentedTextWriter, definition.Type);
 
-            WriteFullNameConstantCode(codeWriter, definition);
-            WriteAttributeGenerationCode(codeWriter, definition);
-            WriteAttributeParsingCode(codeWriter, definition);
+            WriteFullNameConstantCode(indentedTextWriter, definition);
+            indentedTextWriter.WriteLineNoTabs(string.Empty);
+            WriteAttributeGenerationCode(indentedTextWriter, definition);
+            indentedTextWriter.WriteLineNoTabs(string.Empty);
+            WriteAttributeParsingCode(indentedTextWriter, definition);
 
-            WriteSymbolEnd(codeWriter, definition.Type);
+            WriteSymbolEnd(indentedTextWriter, definition.Type);
 
             var code = codeWriter.ToString();
             productionContext.AddSource(hintName, SourceText.From(code, encoding));
@@ -87,33 +91,53 @@ public class Generator : IIncrementalGenerator
         GenerateAttributeData.AddTo(context);
     }
 
-    private void WriteAttributeGenerationCode(TextWriter writer, AttributeDefinition definition)
+    private void WriteAttributeGenerationCode(IndentedTextWriter writer, AttributeDefinition definition)
     {
         writer.WriteLine("public static void AddTo(IncrementalGeneratorPostInitializationContext context)");
         writer.WriteLine("{");
-        writer.WriteLine($"const string hintName = \"{definition.FullName}.g.cs\";");
-        writer.WriteLine("const string code = @\"");
-        writer.WriteLine("using System;");
 
-        if (definition.Namespace is not null)
+        using (writer.IndentScope())
         {
-            writer.WriteLine($"namespace {definition.Namespace}");
-            writer.WriteLine("{");
+            writer.WriteLine($"const string hintName = \"{definition.FullName}.g.cs\";");
+            writer.WriteLine("const string code = @\"using System;");
+
+            using (writer.ResetScope())
+            {
+                writer.WriteLine();
+
+                if (definition.Namespace is not null)
+                {
+                    writer.WriteLine($"namespace {definition.Namespace}");
+                    writer.WriteLine("{");
+                    writer.Indent++;
+                }
+
+                writer.WriteLine($"[AttributeUsage((AttributeTargets){(int) definition.Data.ValidOn}, AllowMultiple = {definition.Data.AllowMultiple.ToLiteral()}, Inherited = {definition.Data.Inherited.ToLiteral()})]");
+                writer.WriteLine($"public class {definition.Name} : Attribute");
+                writer.WriteLine("{");
+
+                using (writer.IndentScope())
+                {
+                    writer.WriteLine($"public {definition.Name}({string.Join(", ", GetConstructorParameters())}) {{ }}");
+                    foreach (var propertyParameter in GetPropertyParameters())
+                        writer.WriteLine(propertyParameter);
+                }
+
+                writer.WriteLine("}");
+
+                if (definition.Namespace is not null)
+                {
+                    writer.Indent--;
+                    writer.WriteLine("}");
+                }
+
+                writer.WriteLine("\";");
+            }
+
+            writer.WriteLine("var sourceText = SourceText.From(code, new UTF8Encoding(false));");
+            writer.WriteLine("context.AddSource(hintName, sourceText);");
         }
 
-        writer.WriteLine($"[AttributeUsage((AttributeTargets){(int) definition.Data.ValidOn}, AllowMultiple = {definition.Data.AllowMultiple.ToLiteral()}, Inherited = {definition.Data.Inherited.ToLiteral()})]");
-        writer.WriteLine($"public class {definition.Name} : Attribute");
-        writer.WriteLine("{");
-        writer.WriteLine($"public {definition.Name}({string.Join(", ", GetConstructorParameters())}) {{ }}");
-        foreach (var propertyParameter in GetPropertyParameters())
-            writer.WriteLine(propertyParameter);
-        writer.WriteLine("}");
-
-        if (definition.Namespace is not null) writer.WriteLine("}");
-
-        writer.WriteLine("\";");
-        writer.WriteLine("var sourceText = SourceText.From(code, new UTF8Encoding(false));");
-        writer.WriteLine("context.AddSource(hintName, sourceText);");
         writer.WriteLine("}");
 
         IEnumerable<string> GetConstructorParameters()
@@ -131,27 +155,29 @@ public class Generator : IIncrementalGenerator
         string FormatPropertyParameter(IParameterSymbol parameter) => $"public {parameter.Type.ToDisplayString()} {parameter.Name.Capitalize()} {{ get; set; }}";
     }
 
-    private void WriteAttributeParsingCode(TextWriter writer, AttributeDefinition definition)
+    private void WriteAttributeParsingCode(IndentedTextWriter writer, AttributeDefinition definition)
     {
         writer.WriteLine($"public static {definition.Type.Name} From(AttributeData data)");
         writer.WriteLine("{");
-        writer.WriteLine("var namedArguments = data.NamedArguments.ToDictionary(o => o.Key, o => o.Value);");
 
-        var requiredParameters = GetRequiredParameters();
-        for (var i = 0; i < requiredParameters.Count; i++)
+        using (writer.IndentScope())
         {
-            var parameter = requiredParameters[i];
-            writer.WriteLine($"var ___{parameter.Name} = ({parameter.Type.ToDisplayString()})data.ConstructorArguments[{i}].Value!;");
+            writer.WriteLine("var namedArguments = data.NamedArguments.ToDictionary(o => o.Key, o => o.Value);");
+
+            var requiredParameters = GetRequiredParameters();
+            for (var i = 0; i < requiredParameters.Count; i++)
+            {
+                var parameter = requiredParameters[i];
+                writer.WriteLine($"var ___{parameter.Name} = ({parameter.Type.ToDisplayString()})data.ConstructorArguments[{i}].Value!;");
+            }
+
+            foreach (var parameter in GetOptionalParameters()) writer.WriteLine($"var ___{parameter.Name} = GetNamedValueOrDefault<{parameter.Type.ToDisplayString()}>(\"{parameter.Name.Capitalize()}\", {parameter.ExplicitDefaultValue.ToLiteral()});");
+            
+            writer.WriteLine($"return new({string.Join(", ", GetFormattedArguments())});");
+
+            writer.WriteLine("T GetNamedValueOrDefault<T>(string name, T defaultValue) => namedArguments.TryGetValue(name, out var value) ? (T) value.Value! : defaultValue;");
         }
 
-        foreach (var parameter in GetOptionalParameters()) writer.WriteLine($"var ___{parameter.Name} = GetNamedValueOrDefault<{parameter.Type.ToDisplayString()}>(\"{parameter.Name.Capitalize()}\", {parameter.ExplicitDefaultValue.ToLiteral()});");
-
-        writer.WriteLine($"return new({string.Join(", ", GetFormattedArguments())});");
-
-        writer.WriteLine(@"T GetNamedValueOrDefault<T>(string name, T defaultValue)
-                => namedArguments.TryGetValue(name, out var value)
-                    ? (T) value.Value!
-                    : defaultValue;");
         writer.WriteLine("}");
 
         IReadOnlyList<IParameterSymbol> GetRequiredParameters()
@@ -174,7 +200,7 @@ public class Generator : IIncrementalGenerator
     private void WriteFullNameConstantCode(TextWriter writer, AttributeDefinition definition)
         => writer.WriteLine($"public const string ATTRIBUTE_NAME = {definition.FullName.ToLiteral()};");
 
-    private void WriteSymbolEnd(TextWriter writer, ISymbol currentSymbol)
+    private void WriteSymbolEnd(IndentedTextWriter writer, ISymbol currentSymbol)
     {
         if (currentSymbol.Kind == SymbolKind.NetModule)
             return;
@@ -185,10 +211,11 @@ public class Generator : IIncrementalGenerator
         if (currentSymbol is not INamespaceSymbol {IsGlobalNamespace: false,} and not ITypeSymbol)
             return;
 
+        writer.Indent--;
         writer.WriteLine("}");
     }
 
-    private void WriteSymbolStart(TextWriter writer, ISymbol currentSymbol)
+    private void WriteSymbolStart(IndentedTextWriter writer, ISymbol currentSymbol)
     {
         if (currentSymbol.Kind == SymbolKind.NetModule)
             return;
@@ -201,12 +228,14 @@ public class Generator : IIncrementalGenerator
             case INamespaceSymbol {IsGlobalNamespace: false,} namespaceSymbol:
                 writer.WriteLine($"namespace {namespaceSymbol.Name}");
                 writer.WriteLine("{");
+                writer.Indent++;
                 break;
 
             case ITypeSymbol typeSymbol:
                 var typeKind = FindTypeKind(typeSymbol);
-                writer.WriteLine($"partial {typeKind.ToString().ToLowerInvariant()} {typeSymbol.Name}"); // class might not be right here
+                writer.WriteLine($"partial {typeKind.ToString().ToLowerInvariant()} {typeSymbol.Name}");
                 writer.WriteLine("{");
+                writer.Indent++;
                 break;
         }
     }
