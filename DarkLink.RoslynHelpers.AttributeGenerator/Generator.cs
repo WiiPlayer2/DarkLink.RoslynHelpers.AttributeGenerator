@@ -103,7 +103,7 @@ public class Generator : IIncrementalGenerator
             writer.WriteLine("{");
         }
 
-        writer.WriteLine($"[AttributeUsage((AttributeTargets){(int) definition.Data.ValidOn}, AllowMultiple = {definition.Data.AllowMultiple}, Inherited = {definition.Data.Inherited})]");
+        writer.WriteLine($"[AttributeUsage((AttributeTargets){(int) definition.Data.ValidOn}, AllowMultiple = {definition.Data.AllowMultiple.ToLiteral()}, Inherited = {definition.Data.Inherited.ToLiteral()})]");
         writer.WriteLine($"public class {definition.Name} : Attribute");
         writer.WriteLine("{");
         writer.WriteLine($"public {definition.Name}({string.Join(", ", GetConstructorParameters())}) {{ }}");
