@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 
 namespace DarkLink.RoslynHelpers.AttributeGenerator;
 
-internal record AttributeDefinition(GenerateAttributeData Data, INamedTypeSymbol Type, IReadOnlyList<IParameterSymbol> Parameters)
+internal record AttributeDefinition(GenerateAttributeData Data, INamedTypeSymbol Type, TypeKind TypeKind, IReadOnlyList<IParameterSymbol> Parameters)
 {
     public string FullName
         => Namespace is not null

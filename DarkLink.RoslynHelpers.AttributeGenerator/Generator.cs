@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using DarkLink.RoslynHelpers.AttributeGenerator.Util;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace DarkLink.RoslynHelpers.AttributeGenerator;
@@ -22,17 +21,18 @@ public class Generator : IIncrementalGenerator
 
         var definitions = context.SyntaxProvider.ForAttributeWithMetadataName(
                 GenerateAttributeData.ATTRIBUTE_NAME,
-                (node, _) => node is ClassDeclarationSyntax,
+                (node, _) => true,
                 (syntaxContext, _) =>
                 {
                     var type = (INamedTypeSymbol) syntaxContext.TargetSymbol;
-                    if (type.Constructors.Length > 1)
+                    var typeKind = FindTypeKind(type);
+                    var parameters = FindParameters(type, typeKind);
+                    if (parameters is null)
                         return default;
 
                     var data = GenerateAttributeData.From(syntaxContext.Attributes.First());
-                    var parameters = type.Constructors.FirstOrDefault()?.Parameters ?? ImmutableArray<IParameterSymbol>.Empty;
 
-                    return new AttributeDefinition(data, type, parameters);
+                    return new AttributeDefinition(data, type, typeKind, parameters);
                 })
             .Where(o => o is not null)
             .Select((o, _) => o!);
@@ -55,6 +55,31 @@ public class Generator : IIncrementalGenerator
             var code = codeWriter.ToString();
             productionContext.AddSource(hintName, SourceText.From(code, encoding));
         });
+    }
+
+    private ImmutableArray<IParameterSymbol>? FindParameters(INamedTypeSymbol type, TypeKind typeKind)
+    {
+        var isRecord = typeKind is TypeKind.Record;
+
+        if ((isRecord && type.Constructors.Length > 2) || (!isRecord && type.Constructors.Length > 1))
+            return null;
+
+        if (isRecord)
+            return type.Constructors.Length == 1
+                ? ImmutableArray<IParameterSymbol>.Empty
+                : type.Constructors.First().Parameters;
+
+        return type.Constructors.Length == 0
+            ? ImmutableArray<IParameterSymbol>.Empty
+            : type.Constructors.First().Parameters;
+    }
+
+    private TypeKind FindTypeKind(ITypeSymbol type)
+    {
+        if (type.IsRecord)
+            return TypeKind.Record;
+
+        return TypeKind.Class;
     }
 
     private void PostInitialize(IncrementalGeneratorPostInitializationContext context)
@@ -111,7 +136,7 @@ public class Generator : IIncrementalGenerator
                 .Where(p => p.HasExplicitDefaultValue)
                 .Select(FormatPropertyParameter);
 
-        string FormatConstructorParameter(IParameterSymbol parameter) => $"{parameter.Type.ToDisplayString()} {parameter.Name}";
+        string FormatConstructorParameter(IParameterSymbol parameter) => $"{parameter.Type.ToDisplayString()} {parameter.Name.Uncapitalize()}";
 
         string FormatPropertyParameter(IParameterSymbol parameter) => $"public {parameter.Type.ToDisplayString()} {parameter.Name.Capitalize()} {{ get; set; }}";
     }
@@ -189,7 +214,8 @@ public class Generator : IIncrementalGenerator
                 break;
 
             case ITypeSymbol typeSymbol:
-                writer.WriteLine($"partial class {typeSymbol.Name}"); // class might not be right here
+                var typeKind = FindTypeKind(typeSymbol);
+                writer.WriteLine($"partial {typeKind.ToString().ToLowerInvariant()} {typeSymbol.Name}"); // class might not be right here
                 writer.WriteLine("{");
                 break;
         }

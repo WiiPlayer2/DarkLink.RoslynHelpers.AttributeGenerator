@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -31,4 +30,9 @@ internal static class Extensions
             _ => throw new NotImplementedException($"Not implemented for type {value.GetType().AssemblyQualifiedName}"),
         };
     }
+
+    public static string Uncapitalize(this string value)
+        => string.IsNullOrEmpty(value)
+            ? string.Empty
+            : $"{char.ToLowerInvariant(value[0])}{value[1..]}";
 }

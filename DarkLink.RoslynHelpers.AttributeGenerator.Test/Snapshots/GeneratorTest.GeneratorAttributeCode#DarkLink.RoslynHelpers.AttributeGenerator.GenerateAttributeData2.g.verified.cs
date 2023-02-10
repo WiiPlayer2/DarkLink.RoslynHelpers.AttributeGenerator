@@ -11,7 +11,7 @@ namespace RoslynHelpers
 {
 namespace AttributeGenerator
 {
-partial class GenerateAttributeData2
+partial record GenerateAttributeData2
 {
 public const string ATTRIBUTE_NAME = "DarkLink.RoslynHelpers.GenerateAttributeAttribute";
 public static void AddTo(IncrementalGeneratorPostInitializationContext context)
@@ -38,12 +38,12 @@ context.AddSource(hintName, sourceText);
 public static GenerateAttributeData2 From(AttributeData data)
 {
 var namedArguments = data.NamedArguments.ToDictionary(o => o.Key, o => o.Value);
-var ___validOn = (System.AttributeTargets)data.ConstructorArguments[0].Value!;
-var ___allowMultiple = GetNamedValueOrDefault<bool>("AllowMultiple", false);
-var ___inherited = GetNamedValueOrDefault<bool>("Inherited", true);
-var ___namespace = GetNamedValueOrDefault<string?>("Namespace", null);
-var ___name = GetNamedValueOrDefault<string?>("Name", null);
-return new(validOn: ___validOn, allowMultiple: ___allowMultiple, inherited: ___inherited, @namespace: ___namespace, name: ___name);
+var ___ValidOn = (System.AttributeTargets)data.ConstructorArguments[0].Value!;
+var ___AllowMultiple = GetNamedValueOrDefault<bool>("AllowMultiple", false);
+var ___Inherited = GetNamedValueOrDefault<bool>("Inherited", true);
+var ___Namespace = GetNamedValueOrDefault<string?>("Namespace", null);
+var ___Name = GetNamedValueOrDefault<string?>("Name", null);
+return new(ValidOn: ___ValidOn, AllowMultiple: ___AllowMultiple, Inherited: ___Inherited, Namespace: ___Namespace, Name: ___Name);
 T GetNamedValueOrDefault<T>(string name, T defaultValue)
                 => namedArguments.TryGetValue(name, out var value)
                     ? (T) value.Value!
