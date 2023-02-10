@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -18,9 +19,9 @@ public class Generator : IIncrementalGenerator
     {
         context.RegisterPostInitializationOutput(PostInitialize);
 
-        var definitions = context.SyntaxProvider.ForAttributeWithMetadataName(
-                GenerateAttributeData.ATTRIBUTE_NAME,
-                (node, _) => true,
+        var definitions = GenerateAttributeData.Find(
+                context.SyntaxProvider,
+                (_, _) => true,
                 TransformDefinition)
             .Where(o => o is not null)
             .Select((o, _) => o!);
@@ -59,16 +60,18 @@ public class Generator : IIncrementalGenerator
         GenerateAttributeData.AddTo(context);
     }
 
-    private static AttributeDefinition? TransformDefinition(GeneratorAttributeSyntaxContext syntaxContext, CancellationToken cancellationToken)
+    private static AttributeDefinition? TransformDefinition(
+        (GeneratorAttributeSyntaxContext syntaxContext, IReadOnlyList<GenerateAttributeData> attributes) pair,
+        CancellationToken cancellationToken)
     {
+        var (syntaxContext, attributes) = pair;
+
         var type = (INamedTypeSymbol) syntaxContext.TargetSymbol;
         var typeKind = type.FindTypeKind();
         var parameters = FindParameters(type, typeKind);
         if (parameters is null)
             return default;
 
-        var data = GenerateAttributeData.From(syntaxContext.Attributes.First());
-
-        return new AttributeDefinition(data, type, typeKind, parameters);
+        return new AttributeDefinition(attributes.First(), type, typeKind, parameters);
     }
 }
