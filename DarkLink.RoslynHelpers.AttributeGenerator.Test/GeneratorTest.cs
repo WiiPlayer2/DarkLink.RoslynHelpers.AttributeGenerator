@@ -3,6 +3,8 @@ namespace DarkLink.RoslynHelpers.AttributeGenerator.Test;
 [TestClass]
 public class GeneratorTest : VerifySourceGenerator
 {
+    public static IEnumerable<object[]> TypedRequiredArgumentsData => Types.All.Select(t => new[] {t.TypeName,});
+
     [TestMethod]
     public async Task AttributeWithConstructorAndOtherNameAndNamespace()
     {
@@ -95,5 +97,60 @@ internal partial record GenerateAttributeData2(
 ";
 
         await Verify(source);
+    }
+
+    [DynamicData(nameof(TypedRequiredArgumentsData))]
+    [DataTestMethod]
+    public async Task TypedRequiredArgument(string typeName)
+    {
+        var source = $@"
+using System;
+
+namespace DarkLink.RoslynHelpers.AttributeGenerator;
+
+[GenerateAttribute(AttributeTargets.All)]
+internal partial record TypedData({typeName} argument);
+";
+
+        await Verify(source, task => task.UseParameters(typeName));
+    }
+
+    public static class Types
+    {
+        public static IEnumerable<TypeInfo> All => Scalars.Concat(Arrays);
+
+        public static IEnumerable<TypeInfo> Arrays => Scalars.Select(t => new TypeInfo($"{t.TypeName}[]", $"new {t.TypeName}[]{{ {t.ExampleValue} }}"));
+
+        public static IEnumerable<TypeInfo> Enums => new TypeInfo[]
+        {
+            new("System.AttributeTargets", "System.AttributeTargets.All"),
+        };
+
+        public static IEnumerable<TypeInfo> Primitives => new TypeInfo[]
+        {
+            new("bool", "true"),
+            new("byte", "0xFF"),
+            new("char", "'?'"),
+            new("double", "13.37"),
+            new("float", "13.37f"),
+            new("int", "-42069"),
+            new("long", "-42069L"),
+            new("sbyte", "-0x1F"),
+            new("short", "-69"),
+            new("string", "\"henlo dere\""),
+            new("uint", "42069U"),
+            new("ulong", "42069UL"),
+            new("ushort", "69U"),
+        };
+
+        public static IEnumerable<TypeInfo> Scalars => Primitives.Concat(Specials).Concat(Enums);
+
+        public static IEnumerable<TypeInfo> Specials => new TypeInfo[]
+        {
+            new("object", "null"),
+            new("System.Type", "typeof(object)"),
+        };
+
+        public record TypeInfo(string TypeName, string ExampleValue);
     }
 }
