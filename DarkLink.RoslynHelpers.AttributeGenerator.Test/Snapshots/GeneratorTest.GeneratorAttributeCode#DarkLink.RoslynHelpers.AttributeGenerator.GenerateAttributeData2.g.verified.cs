@@ -68,17 +68,17 @@ namespace DarkLink.RoslynHelpers
         public static IncrementalValuesProvider<T> Find<T>(
             SyntaxValueProvider syntaxValueProvider,
             Func<SyntaxNode, CancellationToken, bool> predicate,
-            Func<GeneratorAttributeSyntaxContext, IReadOnlyList<GenerateAttributeData2>, CancellationToken, T> transform)
+            Func<GeneratorAttributeSyntaxContext, IReadOnlyList<(AttributeData AttributeData, GenerateAttributeData2 ParsedData)>, CancellationToken, T> transform)
             => syntaxValueProvider.ForAttributeWithMetadataName(
                 ATTRIBUTE_NAME,
                 predicate,
                 (context, cancellationToken) =>
                 {
-                    var attributes = (IReadOnlyList<GenerateAttributeData2>) context.Attributes
+                    var attributes = (IReadOnlyList<(AttributeData, GenerateAttributeData2)>) context.Attributes
                         .Select(data =>
                         {
                             var result = TryFrom(data, out var attribute);
-                            return (result, attribute);
+                            return (result, attribute: (data, attribute));
                         })
                         .Where(pair => pair.result)
                         .Select(pair => pair.attribute!)
@@ -87,5 +87,14 @@ namespace DarkLink.RoslynHelpers
                 })
                 .Where(pair => pair.attributes.Any())
                 .Select((pair, ct) => transform(pair.context, pair.attributes, ct));
+
+        public static IncrementalValuesProvider<T> Find<T>(
+            SyntaxValueProvider syntaxValueProvider,
+            Func<SyntaxNode, CancellationToken, bool> predicate,
+            Func<GeneratorAttributeSyntaxContext, IReadOnlyList<GenerateAttributeData2>, CancellationToken, T> transform)
+            => Find(
+                syntaxValueProvider,
+                predicate,
+                (context, pairs, cancellationToken) => transform(context, pairs.Select(p => p.ParsedData).ToList(), cancellationToken));
     }
 }

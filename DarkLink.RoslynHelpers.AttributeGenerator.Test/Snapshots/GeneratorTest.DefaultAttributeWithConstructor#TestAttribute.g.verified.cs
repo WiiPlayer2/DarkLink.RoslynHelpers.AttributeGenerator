@@ -57,17 +57,17 @@ public class TestAttribute : Attribute
     public static IncrementalValuesProvider<T> Find<T>(
         SyntaxValueProvider syntaxValueProvider,
         Func<SyntaxNode, CancellationToken, bool> predicate,
-        Func<GeneratorAttributeSyntaxContext, IReadOnlyList<TestAttribute>, CancellationToken, T> transform)
+        Func<GeneratorAttributeSyntaxContext, IReadOnlyList<(AttributeData AttributeData, TestAttribute ParsedData)>, CancellationToken, T> transform)
         => syntaxValueProvider.ForAttributeWithMetadataName(
             ATTRIBUTE_NAME,
             predicate,
             (context, cancellationToken) =>
             {
-                var attributes = (IReadOnlyList<TestAttribute>) context.Attributes
+                var attributes = (IReadOnlyList<(AttributeData, TestAttribute)>) context.Attributes
                     .Select(data =>
                     {
                         var result = TryFrom(data, out var attribute);
-                        return (result, attribute);
+                        return (result, attribute: (data, attribute));
                     })
                     .Where(pair => pair.result)
                     .Select(pair => pair.attribute!)
@@ -76,4 +76,13 @@ public class TestAttribute : Attribute
             })
             .Where(pair => pair.attributes.Any())
             .Select((pair, ct) => transform(pair.context, pair.attributes, ct));
+
+    public static IncrementalValuesProvider<T> Find<T>(
+        SyntaxValueProvider syntaxValueProvider,
+        Func<SyntaxNode, CancellationToken, bool> predicate,
+        Func<GeneratorAttributeSyntaxContext, IReadOnlyList<TestAttribute>, CancellationToken, T> transform)
+        => Find(
+            syntaxValueProvider,
+            predicate,
+            (context, pairs, cancellationToken) => transform(context, pairs.Select(p => p.ParsedData).ToList(), cancellationToken));
 }

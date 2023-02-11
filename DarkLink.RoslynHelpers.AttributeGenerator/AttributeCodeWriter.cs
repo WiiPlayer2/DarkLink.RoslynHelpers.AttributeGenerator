@@ -193,7 +193,7 @@ using Microsoft.CodeAnalysis.Text;
         writer.WriteLine("public static IncrementalValuesProvider<T> Find<T>(");
         writer.WriteLine("    SyntaxValueProvider syntaxValueProvider,");
         writer.WriteLine("    Func<SyntaxNode, CancellationToken, bool> predicate,");
-        writer.WriteLine($"    Func<GeneratorAttributeSyntaxContext, IReadOnlyList<{definition.Type.Name}>, CancellationToken, T> transform)");
+        writer.WriteLine($"    Func<GeneratorAttributeSyntaxContext, IReadOnlyList<(AttributeData AttributeData, {definition.Type.Name} ParsedData)>, CancellationToken, T> transform)");
 
         using (writer.IndentScope())
         {
@@ -208,7 +208,7 @@ using Microsoft.CodeAnalysis.Text;
 
                 using (writer.IndentScope())
                 {
-                    writer.WriteLine($"var attributes = (IReadOnlyList<{definition.Type.Name}>) context.Attributes");
+                    writer.WriteLine($"var attributes = (IReadOnlyList<(AttributeData, {definition.Type.Name})>) context.Attributes");
 
                     using (writer.IndentScope())
                     {
@@ -218,7 +218,7 @@ using Microsoft.CodeAnalysis.Text;
                         using (writer.IndentScope())
                         {
                             writer.WriteLine("var result = TryFrom(data, out var attribute);");
-                            writer.WriteLine("return (result, attribute);");
+                            writer.WriteLine("return (result, attribute: (data, attribute));");
                         }
 
                         writer.WriteLine("})");
@@ -233,6 +233,25 @@ using Microsoft.CodeAnalysis.Text;
                 writer.WriteLine("})");
                 writer.WriteLine(".Where(pair => pair.attributes.Any())");
                 writer.WriteLine(".Select((pair, ct) => transform(pair.context, pair.attributes, ct));");
+            }
+        }
+
+        writer.WriteLineNoTabs(string.Empty);
+
+        writer.WriteLine("public static IncrementalValuesProvider<T> Find<T>(");
+        writer.WriteLine("    SyntaxValueProvider syntaxValueProvider,");
+        writer.WriteLine("    Func<SyntaxNode, CancellationToken, bool> predicate,");
+        writer.WriteLine($"    Func<GeneratorAttributeSyntaxContext, IReadOnlyList<{definition.Type.Name}>, CancellationToken, T> transform)");
+
+        using (writer.IndentScope())
+        {
+            writer.WriteLine("=> Find(");
+
+            using (writer.IndentScope())
+            {
+                writer.WriteLine("syntaxValueProvider,");
+                writer.WriteLine("predicate,");
+                writer.WriteLine("(context, pairs, cancellationToken) => transform(context, pairs.Select(p => p.ParsedData).ToList(), cancellationToken));");
             }
         }
     }
