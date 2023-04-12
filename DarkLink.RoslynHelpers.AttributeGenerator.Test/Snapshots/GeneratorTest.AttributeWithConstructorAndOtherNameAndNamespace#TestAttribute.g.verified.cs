@@ -23,7 +23,7 @@ partial class TestAttribute
 namespace OtherNamespace.Here
 {
     [AttributeUsage((AttributeTargets)32767, AllowMultiple = false, Inherited = true)]
-    public class OtherNameAttribute : Attribute
+    internal class OtherNameAttribute : Attribute
     {
         public OtherNameAttribute(string requiredArgument) { }
         public int OptionalArgument { get; set; }

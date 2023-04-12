@@ -21,7 +21,7 @@ partial class TestAttribute
         const string code = @"using System;
 
 [AttributeUsage((AttributeTargets)32767, AllowMultiple = true, Inherited = false)]
-public class TestAttribute : Attribute
+internal class TestAttribute : Attribute
 {
     public TestAttribute() { }
 }

@@ -25,7 +25,7 @@ namespace DarkLink.RoslynHelpers.AttributeGenerator
 namespace DarkLink.RoslynHelpers.AttributeGenerator
 {
     [AttributeUsage((AttributeTargets)32767, AllowMultiple = false, Inherited = true)]
-    public class TypedData : Attribute
+    internal class TypedData : Attribute
     {
         public TypedData(long argument) { }
     }

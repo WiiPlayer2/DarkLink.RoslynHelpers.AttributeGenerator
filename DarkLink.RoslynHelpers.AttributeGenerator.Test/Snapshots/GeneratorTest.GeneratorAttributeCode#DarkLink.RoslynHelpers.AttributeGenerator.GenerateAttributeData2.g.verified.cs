@@ -25,7 +25,7 @@ namespace DarkLink.RoslynHelpers.AttributeGenerator
 namespace DarkLink.RoslynHelpers
 {
     [AttributeUsage((AttributeTargets)4, AllowMultiple = false, Inherited = true)]
-    public class GenerateAttributeAttribute : Attribute
+    internal class GenerateAttributeAttribute : Attribute
     {
         public GenerateAttributeAttribute(System.AttributeTargets validOn) { }
         public bool AllowMultiple { get; set; }

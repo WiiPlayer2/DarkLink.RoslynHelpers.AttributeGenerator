@@ -21,7 +21,7 @@ partial class TestAttribute
         const string code = @"using System;
 
 [AttributeUsage((AttributeTargets)32767, AllowMultiple = false, Inherited = true)]
-public class TestAttribute : Attribute
+internal class TestAttribute : Attribute
 {
     public TestAttribute(string requiredArgument) { }
     public int OptionalArgument { get; set; }
