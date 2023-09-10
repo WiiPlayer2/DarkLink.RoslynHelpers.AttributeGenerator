@@ -101,6 +101,21 @@ internal partial record GenerateAttributeData2(
         await Verify(source);
     }
 
+    [TestMethod]
+    public async Task ParameterlessRecord()
+    {
+        var source = @"
+using System;
+
+namespace DarkLink.RoslynHelpers.AttributeGenerator;
+
+[GenerateAttribute(AttributeTargets.All)]
+internal partial record Marker();
+";
+
+        await Verify(source);
+    }
+
     [DynamicData(nameof(TypedOptionalArgumentsData))]
     [DataTestMethod]
     public async Task TypedOptionalArgument(string typeName, string defaultValue)
