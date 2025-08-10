@@ -1,4 +1,4 @@
-name: Configuration check
+name: Publish nuget
 on:
   workflow_dispatch:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   publish_nuget:
-    name: Check configurations
+    name: Publish nuget
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
