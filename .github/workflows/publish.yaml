@@ -17,5 +17,7 @@ jobs:
       - name: Publish nuget package
         run: nix run .#ci_publish
         env:
-          PRIVATE_NUGET_REPO: ${{ secrets.PRIVATE_NUGET_REPO }}
-          PRIVATE_NUGET_APIKEY: ${{ secrets.PRIVATE_NUGET_APIKEY }}
+          # NUGET_REPO: ${{ secrets.PRIVATE_NUGET_REPO }}
+          # NUGET_APIKEY: ${{ secrets.PRIVATE_NUGET_APIKEY }}
+          NUGET_REPO: ${{ secrets.PUBLIC_NUGET_REPO }}
+          NUGET_APIKEY: ${{ secrets.PUBLIC_NUGET_APIKEY }}

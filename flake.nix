@@ -22,7 +22,7 @@
             dotnet pack ./DarkLink.RoslynHelpers.AttributeGenerator/DarkLink.RoslynHelpers.AttributeGenerator.csproj \
               --configuration Release --output ./packages \
               -p:RealPackageId=DarkLink.RoslynHelpers.AttributeGenerator.Bootstrap
-            dotnet nuget push ./packages/* --skip-duplicate --source "$PRIVATE_NUGET_REPO" --api-key "$PRIVATE_NUGET_APIKEY"
+            dotnet nuget push ./packages/* --skip-duplicate --source "$NUGET_REPO" --api-key "$NUGET_APIKEY"
           '';
         };
       in
