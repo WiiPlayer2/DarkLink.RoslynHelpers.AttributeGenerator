@@ -164,6 +164,24 @@ public class GeneratorTest : VerifySourceGenerator
         await Verify(source, task => task.UseParameters(typeName));
     }
 
+    [TestMethod]
+    [DynamicData(nameof(TypedRequiredArgumentsData))]
+    public async Task ParamsParameter(string typeName)
+    {
+        var source =
+            /*lang=csharp*/
+            $"""
+             using System;
+
+             namespace DarkLink.RoslynHelpers.AttributeGenerator;
+
+             [GenerateAttribute(AttributeTargets.All)]
+             internal partial record ParamsParameter(params {typeName}[] argument);
+             """;
+
+        await Verify(source, task => task.UseParameters(typeName));
+    }
+
     public static class Types
     {
         public static IEnumerable<TypeInfo> All => Scalars.Concat(Arrays);

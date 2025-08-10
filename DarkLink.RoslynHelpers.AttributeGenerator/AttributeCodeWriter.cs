@@ -174,7 +174,8 @@ using Microsoft.CodeAnalysis.Text;
                 .Where(p => p.HasExplicitDefaultValue)
                 .Select(FormatPropertyParameter);
 
-        string FormatConstructorParameter(IParameterSymbol parameter) => $"{MapAttributeType(parameter.Type)} {parameter.Name.Uncapitalize()}";
+        string FormatConstructorParameter(IParameterSymbol parameter) =>
+            $"{(parameter.IsParams ? "params " : string.Empty)}{MapAttributeType(parameter.Type)} {parameter.Name.Uncapitalize()}";
 
         string FormatPropertyParameter(IParameterSymbol parameter) => $"public {MapAttributeType(parameter.Type)} {parameter.Name.Capitalize()} {{ get; set; }}";
 
