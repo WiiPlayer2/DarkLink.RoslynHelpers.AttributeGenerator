@@ -28,7 +28,53 @@ public class GeneratorTest
         var result = ParamsTestAttribute.From(attribute);
 
         // Assert
-        result.Should().Be(new ParamsTestAttribute("hi"));
+        result.Should().BeEquivalentTo(new ParamsTestAttribute("hi"));
+    }
+    
+    [TestMethod]
+    public void ParamsParameterMultipleArguments()
+    {
+        // Arrange
+        var source =
+            /*lang=csharp*/
+            """
+            using DarkLink.RoslynHelpers.AttributeGenerator.Consumer.Test;
+
+            [ParamsTest("henlo", "dere")]
+            internal class My;
+            """;
+        var compilation = Compile(source, context => context.RegisterPostInitializationOutput(ParamsTestAttribute.AddTo));
+        var myType = compilation.GetSemanticModel(compilation.SyntaxTrees.First()).LookupNamespacesAndTypes(0, name: "My").First();
+        var attribute = myType.GetAttributes().First();
+
+        // Act
+        var result = ParamsTestAttribute.From(attribute);
+
+        // Assert
+        result.Should().BeEquivalentTo(new ParamsTestAttribute("henlo", "dere"));
+    }
+    
+    [TestMethod]
+    public void ParamsParameterNoArguments()
+    {
+        // Arrange
+        var source =
+            /*lang=csharp*/
+            """
+            using DarkLink.RoslynHelpers.AttributeGenerator.Consumer.Test;
+
+            [ParamsTest]
+            internal class My;
+            """;
+        var compilation = Compile(source, context => context.RegisterPostInitializationOutput(ParamsTestAttribute.AddTo));
+        var myType = compilation.GetSemanticModel(compilation.SyntaxTrees.First()).LookupNamespacesAndTypes(0, name: "My").First();
+        var attribute = myType.GetAttributes().First();
+
+        // Act
+        var result = ParamsTestAttribute.From(attribute);
+
+        // Assert
+        result.Should().BeEquivalentTo(new ParamsTestAttribute());
     }
 
     private static Compilation Compile(string source, Action<IncrementalGeneratorInitializationContext> initialize)
@@ -72,4 +118,4 @@ internal class TestSourceGenerator(Action<IncrementalGeneratorInitializationCont
 }
 
 [GenerateAttribute(AttributeTargets.Class)]
-internal partial record ParamsTestAttribute(string Args);
+internal partial record ParamsTestAttribute(params string[] Args);

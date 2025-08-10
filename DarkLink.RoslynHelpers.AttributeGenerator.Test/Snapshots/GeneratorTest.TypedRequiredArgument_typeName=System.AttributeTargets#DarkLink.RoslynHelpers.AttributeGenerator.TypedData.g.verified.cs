@@ -38,9 +38,11 @@ namespace DarkLink.RoslynHelpers.AttributeGenerator
         public static TypedData From(AttributeData data)
         {
             var namedArguments = data.NamedArguments.ToDictionary(o => o.Key, o => o.Value);
-            var ___argument = (System.AttributeTargets)data.ConstructorArguments[0].Value!;
+            var ___argument = ResolveScalar<System.AttributeTargets>(data.ConstructorArguments[0]);
             return new(argument: ___argument);
-            T GetNamedValueOrDefault<T>(string name, T defaultValue) => namedArguments.TryGetValue(name, out var value) ? (T) value.Value! : defaultValue;
+            T GetNamedValueOrDefault<T>(string name, T defaultValue) => namedArguments.TryGetValue(name, out var value) ? ResolveScalar<T>(value) : defaultValue;
+            T ResolveScalar<T>(TypedConstant typedConstant) => (T)typedConstant.Value!;
+            T[] ResolveArray<T>(TypedConstant typedConstant) => typedConstant.Values.Select(x => ResolveScalar<T>(x)).ToArray();
         }
 
         public static bool TryFrom(AttributeData data, [NotNullWhen(true)] out TypedData? parsedData)

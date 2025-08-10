@@ -7,6 +7,8 @@ public class GeneratorTest : VerifySourceGenerator
 
     public static IEnumerable<object[]> TypedRequiredArgumentsData => Types.All.Select(t => new[] {t.TypeName});
 
+    public static IEnumerable<object[]> TypedRequiredScalarArgumentsData => Types.Scalars.Select(t => new[] {t.TypeName});
+
     [TestMethod]
     public async Task AttributeWithConstructorAndOtherNameAndNamespace()
     {
@@ -165,7 +167,7 @@ public class GeneratorTest : VerifySourceGenerator
     }
 
     [TestMethod]
-    [DynamicData(nameof(TypedRequiredArgumentsData))]
+    [DynamicData(nameof(TypedRequiredScalarArgumentsData))]
     public async Task ParamsParameter(string typeName)
     {
         var source =

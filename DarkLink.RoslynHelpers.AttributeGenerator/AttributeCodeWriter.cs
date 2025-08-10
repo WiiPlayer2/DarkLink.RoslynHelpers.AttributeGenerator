@@ -44,14 +44,26 @@ internal class AttributeCodeWriter : IDisposable
             for (var i = 0; i < requiredParameters.Count; i++)
             {
                 var parameter = requiredParameters[i];
-                writer.WriteLine($"var ___{parameter.Name} = ({parameter.Type.ToDisplayString()})data.ConstructorArguments[{i}].Value!;");
+                writer.Write($"var ___{parameter.Name} = ");
+                if(parameter.Type is IArrayTypeSymbol arrayType)
+                {
+                    writer.Write($"ResolveArray<{arrayType.ElementType.ToDisplayString()}>(data.ConstructorArguments[{i}])");
+                }
+                else
+                {
+                    writer.Write($"ResolveScalar<{parameter.Type.ToDisplayString()}>(data.ConstructorArguments[{i}])");
+                }
+
+                writer.WriteLine(";");
             }
 
             foreach (var parameter in GetOptionalParameters()) writer.WriteLine($"var ___{parameter.Name} = GetNamedValueOrDefault<{parameter.Type.ToDisplayString()}>(\"{parameter.Name.Capitalize()}\", {parameter.ToDefaultLiteral()});");
 
             writer.WriteLine($"return new({string.Join(", ", GetFormattedArguments())});");
 
-            writer.WriteLine("T GetNamedValueOrDefault<T>(string name, T defaultValue) => namedArguments.TryGetValue(name, out var value) ? (T) value.Value! : defaultValue;");
+            writer.WriteLine("T GetNamedValueOrDefault<T>(string name, T defaultValue) => namedArguments.TryGetValue(name, out var value) ? ResolveScalar<T>(value) : defaultValue;");
+            writer.WriteLine("T ResolveScalar<T>(TypedConstant typedConstant) => (T)typedConstant.Value!;");
+            writer.WriteLine("T[] ResolveArray<T>(TypedConstant typedConstant) => typedConstant.Values.Select(x => ResolveScalar<T>(x)).ToArray();");
         }
 
         writer.WriteLine("}");

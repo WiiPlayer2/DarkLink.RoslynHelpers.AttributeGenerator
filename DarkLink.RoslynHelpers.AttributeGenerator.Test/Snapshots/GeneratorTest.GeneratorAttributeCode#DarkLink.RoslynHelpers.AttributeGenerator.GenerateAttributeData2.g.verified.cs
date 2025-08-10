@@ -42,13 +42,15 @@ namespace DarkLink.RoslynHelpers
         public static GenerateAttributeData2 From(AttributeData data)
         {
             var namedArguments = data.NamedArguments.ToDictionary(o => o.Key, o => o.Value);
-            var ___ValidOn = (System.AttributeTargets)data.ConstructorArguments[0].Value!;
+            var ___ValidOn = ResolveScalar<System.AttributeTargets>(data.ConstructorArguments[0]);
             var ___AllowMultiple = GetNamedValueOrDefault<bool>("AllowMultiple", false);
             var ___Inherited = GetNamedValueOrDefault<bool>("Inherited", true);
             var ___Namespace = GetNamedValueOrDefault<string?>("Namespace", null);
             var ___Name = GetNamedValueOrDefault<string?>("Name", null);
             return new(ValidOn: ___ValidOn, AllowMultiple: ___AllowMultiple, Inherited: ___Inherited, Namespace: ___Namespace, Name: ___Name);
-            T GetNamedValueOrDefault<T>(string name, T defaultValue) => namedArguments.TryGetValue(name, out var value) ? (T) value.Value! : defaultValue;
+            T GetNamedValueOrDefault<T>(string name, T defaultValue) => namedArguments.TryGetValue(name, out var value) ? ResolveScalar<T>(value) : defaultValue;
+            T ResolveScalar<T>(TypedConstant typedConstant) => (T)typedConstant.Value!;
+            T[] ResolveArray<T>(TypedConstant typedConstant) => typedConstant.Values.Select(x => ResolveScalar<T>(x)).ToArray();
         }
 
         public static bool TryFrom(AttributeData data, [NotNullWhen(true)] out GenerateAttributeData2? parsedData)

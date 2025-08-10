@@ -34,10 +34,12 @@ internal class TestAttribute : Attribute
     public static TestAttribute From(AttributeData data)
     {
         var namedArguments = data.NamedArguments.ToDictionary(o => o.Key, o => o.Value);
-        var ___requiredArgument = (string)data.ConstructorArguments[0].Value!;
+        var ___requiredArgument = ResolveScalar<string>(data.ConstructorArguments[0]);
         var ___optionalArgument = GetNamedValueOrDefault<int>("OptionalArgument", 42);
         return new(requiredArgument: ___requiredArgument, optionalArgument: ___optionalArgument);
-        T GetNamedValueOrDefault<T>(string name, T defaultValue) => namedArguments.TryGetValue(name, out var value) ? (T) value.Value! : defaultValue;
+        T GetNamedValueOrDefault<T>(string name, T defaultValue) => namedArguments.TryGetValue(name, out var value) ? ResolveScalar<T>(value) : defaultValue;
+        T ResolveScalar<T>(TypedConstant typedConstant) => (T)typedConstant.Value!;
+        T[] ResolveArray<T>(TypedConstant typedConstant) => typedConstant.Values.Select(x => ResolveScalar<T>(x)).ToArray();
     }
 
     public static bool TryFrom(AttributeData data, [NotNullWhen(true)] out TestAttribute? parsedData)
