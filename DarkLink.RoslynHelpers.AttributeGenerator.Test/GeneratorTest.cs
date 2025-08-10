@@ -3,23 +3,25 @@ namespace DarkLink.RoslynHelpers.AttributeGenerator.Test;
 [TestClass]
 public class GeneratorTest : VerifySourceGenerator
 {
-    public static IEnumerable<object[]> TypedOptionalArgumentsData => Types.All.Select(t => new[] {t.TypeName, t.ExampleValue,});
+    public static IEnumerable<object[]> TypedOptionalArgumentsData => Types.All.Select(t => new[] {t.TypeName, t.ExampleValue});
 
-    public static IEnumerable<object[]> TypedRequiredArgumentsData => Types.All.Select(t => new[] {t.TypeName,});
+    public static IEnumerable<object[]> TypedRequiredArgumentsData => Types.All.Select(t => new[] {t.TypeName});
 
     [TestMethod]
     public async Task AttributeWithConstructorAndOtherNameAndNamespace()
     {
-        var source = @"
-using System;
-using DarkLink.RoslynHelpers;
+        var source =
+            /*lang=csharp*/
+            """
+            using System;
+            using DarkLink.RoslynHelpers;
 
-[GenerateAttribute(AttributeTargets.All, Name = ""OtherNameAttribute"", Namespace = ""OtherNamespace.Here"")]
-public partial class TestAttribute
-{
-    public TestAttribute(string requiredArgument, int optionalArgument = 42) { }
-}
-";
+            [GenerateAttribute(AttributeTargets.All, Name = "OtherNameAttribute", Namespace = "OtherNamespace.Here")]
+            public partial class TestAttribute
+            {
+                public TestAttribute(string requiredArgument, int optionalArgument = 42) { }
+            }
+            """;
 
         await Verify(source);
     }
@@ -27,15 +29,17 @@ public partial class TestAttribute
     [TestMethod]
     public async Task ComplexAttribute()
     {
-        var source = @"
-using System;
-using DarkLink.RoslynHelpers;
+        var source =
+            /*lang=csharp*/
+            """
+            using System;
+            using DarkLink.RoslynHelpers;
 
-[GenerateAttribute(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
-public partial class TestAttribute
-{
-}
-";
+            [GenerateAttribute(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
+            public partial class TestAttribute
+            {
+            }
+            """;
 
         await Verify(source);
     }
@@ -43,15 +47,17 @@ public partial class TestAttribute
     [TestMethod]
     public async Task DefaultAttribute()
     {
-        var source = @"
-using System;
-using DarkLink.RoslynHelpers;
+        var source =
+            /*lang=csharp*/
+            """
+            using System;
+            using DarkLink.RoslynHelpers;
 
-[GenerateAttribute(AttributeTargets.All)]
-public partial class TestAttribute
-{
-}
-";
+            [GenerateAttribute(AttributeTargets.All)]
+            public partial class TestAttribute
+            {
+            }
+            """;
 
         await Verify(source);
     }
@@ -59,16 +65,18 @@ public partial class TestAttribute
     [TestMethod]
     public async Task DefaultAttributeWithConstructor()
     {
-        var source = @"
-using System;
-using DarkLink.RoslynHelpers;
+        var source =
+            /*lang=csharp*/
+            """
+            using System;
+            using DarkLink.RoslynHelpers;
 
-[GenerateAttribute(AttributeTargets.All)]
-public partial class TestAttribute
-{
-    public TestAttribute(string requiredArgument, int optionalArgument = 42) { }
-}
-";
+            [GenerateAttribute(AttributeTargets.All)]
+            public partial class TestAttribute
+            {
+                public TestAttribute(string requiredArgument, int optionalArgument = 42) { }
+            }
+            """;
 
         await Verify(source);
     }
@@ -84,19 +92,21 @@ public partial class TestAttribute
     [TestMethod]
     public async Task GeneratorAttributeCode()
     {
-        var source = @"
-using System;
+        var source =
+            /*lang=csharp*/
+            """
+            using System;
 
-namespace DarkLink.RoslynHelpers.AttributeGenerator;
+            namespace DarkLink.RoslynHelpers.AttributeGenerator;
 
-[GenerateAttribute(AttributeTargets.Class, Namespace = ""DarkLink.RoslynHelpers"", Name = ""GenerateAttributeAttribute"")]
-internal partial record GenerateAttributeData2(
-    AttributeTargets ValidOn,
-    bool AllowMultiple = false,
-    bool Inherited = true,
-    string? Namespace = default,
-    string? Name = default);
-";
+            [GenerateAttribute(AttributeTargets.Class, Namespace = "DarkLink.RoslynHelpers", Name = "GenerateAttributeAttribute")]
+            internal partial record GenerateAttributeData2(
+                AttributeTargets ValidOn,
+                bool AllowMultiple = false,
+                bool Inherited = true,
+                string? Namespace = default,
+                string? Name = default);
+            """;
 
         await Verify(source);
     }
@@ -104,14 +114,16 @@ internal partial record GenerateAttributeData2(
     [TestMethod]
     public async Task ParameterlessRecord()
     {
-        var source = @"
-using System;
+        var source =
+            /*lang=csharp*/
+            """
+            using System;
 
-namespace DarkLink.RoslynHelpers.AttributeGenerator;
+            namespace DarkLink.RoslynHelpers.AttributeGenerator;
 
-[GenerateAttribute(AttributeTargets.All)]
-internal partial record Marker();
-";
+            [GenerateAttribute(AttributeTargets.All)]
+            internal partial record Marker();
+            """;
 
         await Verify(source);
     }
@@ -120,14 +132,16 @@ internal partial record Marker();
     [DataTestMethod]
     public async Task TypedOptionalArgument(string typeName, string defaultValue)
     {
-        var source = $@"
-using System;
+        var source =
+            /*lang=csharp*/
+            $"""
+             using System;
 
-namespace DarkLink.RoslynHelpers.AttributeGenerator;
+             namespace DarkLink.RoslynHelpers.AttributeGenerator;
 
-[GenerateAttribute(AttributeTargets.All)]
-internal partial record TypedData({typeName} argument = {defaultValue});
-";
+             [GenerateAttribute(AttributeTargets.All)]
+             internal partial record TypedData({typeName} argument = {defaultValue});
+             """;
 
         await Verify(source, task => task.UseParameters(typeName));
     }
@@ -136,14 +150,16 @@ internal partial record TypedData({typeName} argument = {defaultValue});
     [DataTestMethod]
     public async Task TypedRequiredArgument(string typeName)
     {
-        var source = $@"
-using System;
+        var source =
+            /*lang=csharp*/
+            $"""
+             using System;
 
-namespace DarkLink.RoslynHelpers.AttributeGenerator;
+             namespace DarkLink.RoslynHelpers.AttributeGenerator;
 
-[GenerateAttribute(AttributeTargets.All)]
-internal partial record TypedData({typeName} argument);
-";
+             [GenerateAttribute(AttributeTargets.All)]
+             internal partial record TypedData({typeName} argument);
+             """;
 
         await Verify(source, task => task.UseParameters(typeName));
     }
