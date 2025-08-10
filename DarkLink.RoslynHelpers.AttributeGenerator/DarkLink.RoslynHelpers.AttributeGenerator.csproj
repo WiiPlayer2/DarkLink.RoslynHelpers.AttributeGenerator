@@ -4,9 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <VersionPrefix>0.0.1</VersionPrefix>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
   </PropertyGroup>
 
@@ -31,5 +29,11 @@
   <ItemGroup>
     <None Include="$(OutputPath)/$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
+
+  <Target Name="_UpdatePackageId" BeforeTargets="$(PackDependsOn)" >
+    <PropertyGroup>
+      <PackageId>$(RealPackageId)</PackageId>
+    </PropertyGroup>
+  </Target>
 
 </Project>

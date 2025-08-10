@@ -1,0 +1,16 @@
+name: Configuration check
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish_nuget:
+    name: Check configurations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v27
+      - name: Publish nuget package
+        run: nix run .#ci_publish
