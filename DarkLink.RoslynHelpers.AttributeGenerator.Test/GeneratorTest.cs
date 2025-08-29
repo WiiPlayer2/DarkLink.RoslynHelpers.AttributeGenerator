@@ -130,6 +130,23 @@ public class GeneratorTest : VerifySourceGenerator
         await Verify(source);
     }
 
+    [TestMethod]
+    public async Task ConstructorlessRecord()
+    {
+        var source =
+            /*lang=csharp*/
+            """
+            using System;
+
+            namespace DarkLink.RoslynHelpers.AttributeGenerator;
+
+            [GenerateAttribute(AttributeTargets.All)]
+            internal partial record Marker;
+            """;
+
+        await Verify(source);
+    }
+
     [DynamicData(nameof(TypedOptionalArgumentsData))]
     [DataTestMethod]
     public async Task TypedOptionalArgument(string typeName, string defaultValue)

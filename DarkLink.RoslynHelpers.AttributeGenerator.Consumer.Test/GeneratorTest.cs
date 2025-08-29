@@ -76,6 +76,29 @@ public class GeneratorTest
         // Assert
         result.Should().BeEquivalentTo(new ParamsTestAttribute());
     }
+    
+    [TestMethod]
+    public void ConstructorlessRecordAttribute()
+    {
+        // Arrange
+        var source =
+            /*lang=csharp*/
+            """
+            using DarkLink.RoslynHelpers.AttributeGenerator.Consumer.Test;
+
+            [RecordWithoutConstructor]
+            internal class My;
+            """;
+        var compilation = Compile(source, context => context.RegisterPostInitializationOutput(RecordWithoutConstructorAttribute.AddTo));
+        var myType = compilation.GetSemanticModel(compilation.SyntaxTrees.First()).LookupNamespacesAndTypes(0, name: "My").First();
+        var attribute = myType.GetAttributes().First();
+
+        // Act
+        var act = () => RecordWithoutConstructorAttribute.From(attribute);
+
+        // Assert
+        act.Should().NotThrow();
+    }
 
     private static Compilation Compile(string source, Action<IncrementalGeneratorInitializationContext> initialize)
     {
@@ -119,3 +142,6 @@ internal class TestSourceGenerator(Action<IncrementalGeneratorInitializationCont
 
 [GenerateAttribute(AttributeTargets.Class)]
 internal partial record ParamsTestAttribute(params string[] Args);
+
+[GenerateAttribute(AttributeTargets.Class)]
+internal partial record RecordWithoutConstructorAttribute;

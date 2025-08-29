@@ -37,9 +37,19 @@ public class Generator : IIncrementalGenerator
             return null;
 
         if (isRecord)
-            return type.Constructors.Length == 1
-                ? ImmutableArray<IParameterSymbol>.Empty
-                : type.Constructors.First().Parameters;
+        {
+            var nonCopyConstructors = type.Constructors
+                .Where(x => !IsCopyConstructor(x))
+                .ToList();
+            
+            if (nonCopyConstructors.Count > 1)
+                return null;
+
+            return nonCopyConstructors[0].Parameters;
+
+            bool IsCopyConstructor(IMethodSymbol constructor) =>
+                constructor.Parameters.Length == 1 && SymbolEqualityComparer.Default.Equals(constructor.Parameters[0].Type, type);
+        }
 
         return type.Constructors.Length == 0
             ? ImmutableArray<IParameterSymbol>.Empty
