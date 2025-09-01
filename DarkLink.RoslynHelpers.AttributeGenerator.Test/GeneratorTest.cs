@@ -201,6 +201,27 @@ public class GeneratorTest : VerifySourceGenerator
         await Verify(source, task => task.UseParameters(typeName));
     }
 
+    [TestMethod]
+    public async Task Docs()
+    {
+        var source =
+            /*lang=csharp*/
+            $""""
+             using System;
+
+             namespace DarkLink.RoslynHelpers.AttributeGenerator;
+
+             [GenerateAttribute(AttributeTargets.All, Docs = """
+                                                             <summary>
+                                                             This is example documentation attached to the attribute.
+                                                             </summary>
+                                                             """)]
+             internal partial record Docs;
+             """";
+
+        await Verify(source);
+    }
+
     public static class Types
     {
         public static IEnumerable<TypeInfo> All => Scalars.Concat(Arrays);

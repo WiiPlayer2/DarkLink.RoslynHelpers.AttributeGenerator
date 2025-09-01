@@ -148,6 +148,8 @@ using Microsoft.CodeAnalysis.Text;
                     writer.Indent++;
                 }
 
+                WriteAttributeDocs();
+                
                 writer.WriteLine($"[AttributeUsage((AttributeTargets){(int) definition.Data.ValidOn}, AllowMultiple = {definition.Data.AllowMultiple.ToLiteral()}, Inherited = {definition.Data.Inherited.ToLiteral()})]");
                 writer.WriteLine($"internal class {definition.Name} : Attribute");
                 writer.WriteLine("{");
@@ -198,6 +200,16 @@ using Microsoft.CodeAnalysis.Text;
 
             var fullName = type.ToDisplayString();
             return fullName == "Microsoft.CodeAnalysis.INamedTypeSymbol" ? "System.Type" : fullName;
+        }
+
+        void WriteAttributeDocs()
+        {
+            if (string.IsNullOrWhiteSpace(definition.Data.Docs)) return;
+            
+            foreach (var line in definition.Data.Docs!.Split('\n'))
+            {
+                writer.WriteLine($"/// {line.Trim()}");
+            }
         }
     }
 

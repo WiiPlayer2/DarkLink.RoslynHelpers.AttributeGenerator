@@ -11,5 +11,6 @@ namespace DarkLink.RoslynHelpers
         public bool Inherited { get; set; }
         public string? Namespace { get; set; }
         public string? Name { get; set; }
+        public string? Docs { get; set; }
     }
 }

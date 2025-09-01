@@ -8,4 +8,5 @@ internal partial record GenerateAttributeData(
     bool AllowMultiple = false,
     bool Inherited = true,
     string? Namespace = default,
-    string? Name = default);
+    string? Name = default,
+    string? Docs = default);
