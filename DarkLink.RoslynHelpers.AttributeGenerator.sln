@@ -14,6 +14,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{3CA243C0-9696-42DA-ABAA-F4365D4CADC4}"
 	ProjectSection(SolutionItems) = preProject
 		version.json = version.json
+		flake.nix = flake.nix
 	EndProjectSection
 EndProject
 Global
