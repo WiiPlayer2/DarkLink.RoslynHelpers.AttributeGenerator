@@ -97,6 +97,7 @@ public class GeneratorTest : VerifySourceGenerator
         var source =
             /*lang=csharp*/
             """
+            #nullable enable
             using System;
 
             namespace DarkLink.RoslynHelpers.AttributeGenerator;
@@ -154,6 +155,7 @@ public class GeneratorTest : VerifySourceGenerator
         var source =
             /*lang=csharp*/
             $"""
+             #nullable enable
              using System;
 
              namespace DarkLink.RoslynHelpers.AttributeGenerator;
@@ -172,6 +174,7 @@ public class GeneratorTest : VerifySourceGenerator
         var source =
             /*lang=csharp*/
             $"""
+             #nullable enable
              using System;
 
              namespace DarkLink.RoslynHelpers.AttributeGenerator;
@@ -190,6 +193,7 @@ public class GeneratorTest : VerifySourceGenerator
         var source =
             /*lang=csharp*/
             $"""
+             #nullable enable
              using System;
 
              namespace DarkLink.RoslynHelpers.AttributeGenerator;
@@ -226,15 +230,15 @@ public class GeneratorTest : VerifySourceGenerator
     {
         public static IEnumerable<TypeInfo> All => Scalars.Concat(Arrays);
 
-        public static IEnumerable<TypeInfo> Arrays => Scalars.Select(t => new TypeInfo($"{t.TypeName}[]", "null"));
+        public static IEnumerable<TypeInfo> Arrays => Scalars.Select(t => new TypeInfo($"{t.TypeName}[]?", "null"));
 
-        public static IEnumerable<TypeInfo> Enums => new TypeInfo[]
-        {
-            new("System.AttributeTargets", "System.AttributeTargets.All"),
-        };
+        public static IEnumerable<TypeInfo> Enums =>
+        [
+            new("System.AttributeTargets", "System.AttributeTargets.All")
+        ];
 
-        public static IEnumerable<TypeInfo> Primitives => new TypeInfo[]
-        {
+        public static IEnumerable<TypeInfo> Primitives =>
+        [
             new("bool", "true"),
             new("byte", "0xFF"),
             new("char", "'?'"),
@@ -247,16 +251,16 @@ public class GeneratorTest : VerifySourceGenerator
             new("string", "\"henlo dere\""),
             new("uint", "42069U"),
             new("ulong", "42069UL"),
-            new("ushort", "69"),
-        };
+            new("ushort", "69")
+        ];
 
         public static IEnumerable<TypeInfo> Scalars => Primitives.Concat(Specials).Concat(Enums);
 
-        public static IEnumerable<TypeInfo> Specials => new TypeInfo[]
-        {
-            new("object", "null"),
-            new("Microsoft.CodeAnalysis.INamedTypeSymbol", "null"),
-        };
+        public static IEnumerable<TypeInfo> Specials =>
+        [
+            new("object?", "null"),
+            new("Microsoft.CodeAnalysis.INamedTypeSymbol?", "null")
+        ];
 
         public record TypeInfo(string TypeName, string ExampleValue);
     }
