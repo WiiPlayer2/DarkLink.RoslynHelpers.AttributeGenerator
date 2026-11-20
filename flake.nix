@@ -12,7 +12,7 @@
         script = pkgs.writeShellApplication {
           name = "ci_publish";
           runtimeInputs = with pkgs; [
-            dotnet-sdk
+            dotnetCorePackages.sdk_10_0
           ];
           text = ''
             dotnet build --configuration Release
