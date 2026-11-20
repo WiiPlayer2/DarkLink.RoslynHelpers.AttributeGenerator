@@ -49,6 +49,9 @@ public abstract class VerifySourceGenerator : VerifyBase
         Verify(source, (compilation, _) =>
         {
             var diagnostics = compilation.GetDiagnostics();
+            // var errors = string.Join(Environment.NewLine, diagnostics
+            //     .Where(d => d.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning));
+            // Assert.IsFalse(errors.Any(), $"Compilation failed (warnings as errors):\n{string.Join("\n", errors)}");
             var errors = string.Join(Environment.NewLine, diagnostics
                 .Where(d => d.Severity == DiagnosticSeverity.Error));
             Assert.IsFalse(errors.Any(), $"Compilation failed:\n{string.Join("\n", errors)}");
